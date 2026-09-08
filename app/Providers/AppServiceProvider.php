@@ -16,6 +16,8 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(\App\Services\DashboardStatsService::class);
         $this->app->singleton(\App\Services\CacheInvalidationService::class);
+        $this->app->singleton(\App\Services\AuthRoleService::class);
+        $this->app->singleton(\App\Services\UnifiedAuthService::class);
     }
 
     /**

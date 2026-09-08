@@ -80,7 +80,7 @@
         <div class="user-details">
             <div class="user-name">{{ $adminUser }}</div>
             <div class="user-actions">
-                <form action="{{ route('admin.logout') }}" method="post" style="display:inline">@csrf
+                <form action="{{ route('logout') }}" method="post" style="display:inline">@csrf
                     <button type="submit" class="user-action-btn logout" style="background:none;border:none;cursor:pointer">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>

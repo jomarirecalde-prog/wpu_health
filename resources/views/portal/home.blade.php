@@ -1,13 +1,18 @@
 @extends('layouts.portal-public')
 @section('title', 'WPU Health Services')
 @section('content')
+@php $authRoles = app(\App\Services\AuthRoleService::class); @endphp
 <div class="portal-welcome">
     <h2>WPU Health Services</h2>
     <p>Book consultations, manage appointments, and connect with university physicians.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">
-        <a href="{{ route('portal.login') }}" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login</a>
-        <a href="{{ route('portal.register') }}" class="btn btn-secondary"><i class="fas fa-user-plus"></i> Register</a>
+        @if ($authRoles->isAuthenticated())
+            <a href="{{ $authRoles->dashboardUrl() }}" class="btn btn-primary"><i class="fas fa-th-large"></i> {{ $authRoles->dashboardLabel() }}</a>
+        @else
+            <a href="{{ route('login') }}" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Login / Register</a>
+        @endif
         <a href="{{ route('portal.physicians') }}" class="btn btn-secondary"><i class="fas fa-user-md"></i> Available Physicians</a>
+        <a href="{{ route('home') }}" class="btn btn-secondary"><i class="fas fa-home"></i> Main Site</a>
     </div>
 </div>
 <div class="panels-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">

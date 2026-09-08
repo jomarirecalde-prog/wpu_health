@@ -27,7 +27,7 @@
                 <a href="{{ route('admin.workspace', ['path' => 'admin/admin.php']) }}?page=settings" role="menuitem"><i class="fas fa-cog"></i> Settings</a>
                 <a href="{{ route('admin.calendar.index') }}" role="menuitem"><i class="fas fa-calendar-check"></i> Calendar</a>
                 <div class="sep" role="separator"></div>
-                <form action="{{ route('admin.logout') }}" method="post" style="margin:0">@csrf
+                <form action="{{ route('logout') }}" method="post" style="margin:0">@csrf
                     <button type="submit" style="width:100%;text-align:left;background:none;border:none;cursor:pointer;padding:10px 16px;font:inherit;color:inherit" role="menuitem">
                         <i class="fas fa-sign-out-alt"></i> Logout
                     </button>

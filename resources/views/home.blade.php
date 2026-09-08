@@ -5,9 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     @php
         $logo = file_exists(public_path('logo.png')) ? asset('public/logo.png') : null;
+        $authRoles = app(\App\Services\AuthRoleService::class);
+        $isAuthenticated = $authRoles->isAuthenticated();
     @endphp
-    <title>{{ config('app.name') }} — Healthcare Management System</title>
-    <meta name="description" content="Modern healthcare management system for patients, referrals, medical certificates, consultations, reports, and administrative workflows.">
+    <title>{{ config('app.name') }} — WPU Health Services</title>
+    <meta name="description" content="WPU Health Services — book consultations, manage appointments, and access healthcare services for students, employees, physicians, and administrators.">
     @if ($logo)
         <link rel="icon" type="image/png" href="{{ $logo }}">
     @endif
@@ -887,14 +889,23 @@
                 <a href="#contact">Contact</a>
             </nav>
 
-            <a class="btn btn-primary btn-sm" href="{{ route('admin.login') }}" aria-label="{{ __('Admin sign in') }}">
-                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                    <polyline points="10 17 15 12 10 7"/>
-                    <line x1="15" y1="12" x2="3" y2="12"/>
-                </svg>
-                {{ __('Admin sign in') }}
-            </a>
+            @if ($isAuthenticated)
+                <a class="btn btn-primary btn-sm" href="{{ $authRoles->dashboardUrl() }}" aria-label="{{ $authRoles->dashboardLabel() }}">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    {{ $authRoles->dashboardLabel() }}
+                </a>
+            @else
+                <a class="btn btn-primary btn-sm" href="{{ route('login') }}" aria-label="{{ __('Login / Register') }}">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/>
+                        <line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    {{ __('Login / Register') }}
+                </a>
+            @endif
         </div>
     </header>
 
@@ -911,21 +922,33 @@
                         Trusted Healthcare Platform
                     </div>
                     <h1 id="hero-heading">
-                        Modern <span class="highlight">Healthcare Management</span> System
+                        <span class="highlight">WPU Health Services</span>
                     </h1>
                     <p class="hero-desc">
-                        Manage patients, referrals, medical certificates, consultations, reports, and administrative
-                        workflows in one secure platform. The unified PHP application runs behind Laravel authentication
-                        at <code>/admin/workspace</code>.
+                        Your unified gateway to campus health services — book consultations, view physicians,
+                        manage appointments, and access role-based dashboards for patients, physicians, and administrators
+                        through one secure sign-in.
                     </p>
                     <div class="hero-actions">
-                        <a class="btn btn-primary" href="{{ route('admin.login') }}">
-                            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                                <polyline points="10 17 15 12 10 7"/>
-                                <line x1="15" y1="12" x2="3" y2="12"/>
-                            </svg>
-                            {{ __('Admin sign in') }}
+                        @if ($isAuthenticated)
+                            <a class="btn btn-primary" href="{{ $authRoles->dashboardUrl() }}">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                                {{ $authRoles->dashboardLabel() }}
+                            </a>
+                        @else
+                            <a class="btn btn-primary" href="{{ route('login') }}">
+                                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                                    <polyline points="10 17 15 12 10 7"/>
+                                    <line x1="15" y1="12" x2="3" y2="12"/>
+                                </svg>
+                                {{ __('Login / Register') }}
+                            </a>
+                        @endif
+                        <a class="btn btn-secondary" href="{{ route('portal.physicians') }}">
+                            {{ __('Available Physicians') }}
                         </a>
                         <a class="btn btn-secondary" href="#features">
                             Learn More
@@ -1220,16 +1243,13 @@
         <section class="section" aria-labelledby="cta-heading">
             <div class="container">
                 <div class="cta-banner reveal">
-                    <h2 id="cta-heading">Ready to Get Started?</h2>
-                    <p>Sign in to the admin workspace and manage your healthcare operations with confidence.</p>
-                    <a class="btn btn-primary" href="{{ route('admin.login') }}">
-                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                            <polyline points="10 17 15 12 10 7"/>
-                            <line x1="15" y1="12" x2="3" y2="12"/>
-                        </svg>
-                        {{ __('Admin sign in') }}
-                    </a>
+                    <h2 id="cta-heading">{{ $isAuthenticated ? __('Continue to your dashboard') : __('Ready to get started?') }}</h2>
+                    <p>{{ $isAuthenticated ? __('You are signed in. Go to your role-based dashboard to manage your health services.') : __('Sign in or create a patient account to book consultations and manage your health services.') }}</p>
+                    @if ($isAuthenticated)
+                        <a class="btn btn-primary" href="{{ $authRoles->dashboardUrl() }}">{{ $authRoles->dashboardLabel() }}</a>
+                    @else
+                        <a class="btn btn-primary" href="{{ route('login') }}">{{ __('Login / Register') }}</a>
+                    @endif
                 </div>
             </div>
         </section>
@@ -1251,7 +1271,8 @@
                     <ul>
                         <li><a href="#features">Features</a></li>
                         <li><a href="#modules">Modules</a></li>
-                        <li><a href="{{ route('admin.login') }}">{{ __('Admin sign in') }}</a></li>
+                        <li><a href="{{ route('login') }}">{{ __('Login / Register') }}</a></li>
+                        <li><a href="{{ route('portal.physicians') }}">{{ __('Physicians') }}</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">

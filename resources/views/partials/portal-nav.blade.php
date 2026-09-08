@@ -7,4 +7,7 @@
     <a href="{{ route('portal.physicians') }}" class="portal-nav__link {{ request()->routeIs('portal.physicians') ? 'is-active' : '' }}"><i class="fas fa-user-md"></i> Physicians</a>
     <a href="{{ route('portal.notifications') }}" class="portal-nav__link {{ request()->routeIs('portal.notifications') ? 'is-active' : '' }}"><i class="fas fa-bell"></i> Notifications</a>
     <a href="{{ route('portal.profile') }}" class="portal-nav__link {{ request()->routeIs('portal.profile') ? 'is-active' : '' }}"><i class="fas fa-user"></i> Profile</a>
+    <form action="{{ route('logout') }}" method="post" class="portal-nav__link" style="margin-top:auto;border:none;background:none;padding:0">@csrf
+        <button type="submit" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:0.5rem;width:100%"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </form>
 </nav>

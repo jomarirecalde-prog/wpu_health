@@ -68,7 +68,7 @@
             <a href="{{ route('admin.dashboard') }}" class="brand">{{ config('app.name') }}</a>
             <div style="display:flex;align-items:center;gap:1rem;">
                 <span class="user">{{ auth('admin')->user()->username }}</span>
-                <form action="{{ route('admin.logout') }}" method="post">
+                <form action="{{ route('logout') }}" method="post">
                     @csrf
                     <button type="submit">{{ __('Log out') }}</button>
                 </form>

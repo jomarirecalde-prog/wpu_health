@@ -2,18 +2,16 @@
 
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\DashboardController;
-use App\Http\Controllers\Admin\LoginController;
-use App\Http\Controllers\Admin\LogoutController;
 use App\Http\Controllers\Admin\UnifiedPortalController;
 use App\Http\Controllers\Api\AppointmentApiController;
 use App\Http\Controllers\Api\CalendarApiController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Physician\AppointmentController as PhysicianAppointmentController;
-use App\Http\Controllers\Physician\AuthController as PhysicianAuthController;
 use App\Http\Controllers\Physician\DashboardController as PhysicianDashboardController;
 use App\Http\Controllers\Physician\ProfileController as PhysicianProfileController;
 use App\Http\Controllers\Physician\ScheduleController as PhysicianScheduleController;
 use App\Http\Controllers\Portal\AppointmentController as PortalAppointmentController;
-use App\Http\Controllers\Portal\AuthController as PortalAuthController;
 use App\Http\Controllers\Portal\BookingController;
 use App\Http\Controllers\Portal\DashboardController as PortalDashboardController;
 use App\Http\Controllers\Portal\NotificationController as PortalNotificationController;
@@ -22,7 +20,23 @@ use App\Http\Controllers\Portal\ProfileController as PortalProfileController;
 use App\Http\Controllers\Portal\PublicPortalController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'home');
+Route::view('/', 'home')->name('home');
+
+// Unified authentication entry point
+Route::middleware('guest:admin,portal,physician')->group(function (): void {
+    Route::get('login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [AuthController::class, 'login'])->middleware('throttle:8,1')->name('login.store');
+    Route::get('register', [AuthController::class, 'showLogin'])->name('register');
+    Route::post('register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('register.store');
+});
+
+Route::post('logout', LogoutController::class)->middleware('auth:admin,portal,physician')->name('logout');
+
+// Legacy login URLs → unified auth
+Route::redirect('admin/login', '/login', 301);
+Route::redirect('portal/login', '/login', 301);
+Route::redirect('physician/login', '/login', 301);
+Route::redirect('portal/register', '/register', 301);
 
 // Legacy public portal bridge
 Route::prefix('portal/legacy')->middleware('web')->group(function (): void {
@@ -32,19 +46,10 @@ Route::prefix('portal/legacy')->middleware('web')->group(function (): void {
 // Patient / User Portal
 Route::prefix('portal')->middleware('web')->group(function (): void {
     Route::get('/', [PortalDashboardController::class, 'home'])->name('portal.home');
-
-    Route::middleware('guest:portal')->group(function (): void {
-        Route::get('login', [PortalAuthController::class, 'showLogin'])->name('portal.login');
-        Route::post('login', [PortalAuthController::class, 'login'])->middleware('throttle:8,1');
-        Route::get('register', [PortalAuthController::class, 'showRegister'])->name('portal.register');
-        Route::post('register', [PortalAuthController::class, 'register'])->middleware('throttle:5,1');
-    });
-
     Route::get('physicians', [PhysicianListController::class, 'index'])->name('portal.physicians');
 
-    Route::middleware('auth:portal')->group(function (): void {
+    Route::middleware(['auth:portal', 'role:patient'])->group(function (): void {
         Route::get('dashboard', [PortalDashboardController::class, 'dashboard'])->name('portal.dashboard');
-        Route::post('logout', [PortalAuthController::class, 'logout'])->name('portal.logout');
 
         Route::get('book', [BookingController::class, 'index'])->name('portal.book');
         Route::get('book/slots', [BookingController::class, 'slots'])->name('portal.book.slots');
@@ -64,14 +69,8 @@ Route::prefix('portal')->middleware('web')->group(function (): void {
 
 // Physician Portal
 Route::prefix('physician')->middleware('web')->group(function (): void {
-    Route::middleware('guest:physician')->group(function (): void {
-        Route::get('login', [PhysicianAuthController::class, 'showLogin'])->name('physician.login');
-        Route::post('login', [PhysicianAuthController::class, 'login'])->middleware('throttle:8,1');
-    });
-
-    Route::middleware('auth:physician')->group(function (): void {
+    Route::middleware(['auth:physician', 'role:physician'])->group(function (): void {
         Route::get('/', [PhysicianDashboardController::class, 'index'])->name('physician.dashboard');
-        Route::post('logout', [PhysicianAuthController::class, 'logout'])->name('physician.logout');
 
         Route::get('appointments', [PhysicianAppointmentController::class, 'index'])->name('physician.appointments');
         Route::get('appointments/{appointment}', [PhysicianAppointmentController::class, 'show'])->name('physician.appointments.show');
@@ -90,24 +89,16 @@ Route::prefix('physician')->middleware('web')->group(function (): void {
     });
 });
 
-Route::redirect('login', '/admin/login', 302)->name('login');
-
 Route::get('admin', function () {
-    return auth('admin')->check()
+    $roles = app(\App\Services\AuthRoleService::class);
+
+    return $roles->hasRole('admin', 'super_admin')
         ? redirect()->route('admin.dashboard')
-        : redirect()->route('admin.login');
+        : redirect()->route('login');
 })->name('admin.index');
 
-Route::middleware('guest:admin')->prefix('admin')->group(function (): void {
-    Route::get('login', [LoginController::class, 'create'])->name('admin.login');
-    Route::post('login', [LoginController::class, 'store'])
-        ->middleware('throttle:8,1')
-        ->name('admin.login.store');
-});
-
-Route::middleware('auth:admin')->prefix('admin')->group(function (): void {
+Route::middleware(['auth:admin', 'role:admin,super_admin'])->prefix('admin')->group(function (): void {
     Route::get('dashboard', DashboardController::class)->name('admin.dashboard');
-    Route::post('logout', LogoutController::class)->name('admin.logout');
 
     Route::prefix('calendar')->name('admin.calendar.')->group(function (): void {
         Route::get('/', [CalendarController::class, 'index'])->name('index');
@@ -127,7 +118,7 @@ Route::middleware('auth:admin')->prefix('admin')->group(function (): void {
             request()->session()->invalidate();
             request()->session()->regenerateToken();
 
-            return redirect()->route('admin.login');
+            return redirect()->route('home');
         })->name('admin.workspace.exit');
 
         Route::any('{path?}', UnifiedPortalController::class)

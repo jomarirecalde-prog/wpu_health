@@ -5,4 +5,7 @@
     <a href="{{ route('physician.appointments') }}" class="portal-nav__link {{ request()->routeIs('physician.appointments*') ? 'is-active' : '' }}"><i class="fas fa-list"></i> My Appointments</a>
     <a href="{{ route('physician.schedule') }}" class="portal-nav__link {{ request()->routeIs('physician.schedule*') ? 'is-active' : '' }}"><i class="fas fa-clock"></i> My Schedule</a>
     <a href="{{ route('physician.profile') }}" class="portal-nav__link {{ request()->routeIs('physician.profile') ? 'is-active' : '' }}"><i class="fas fa-user"></i> Profile</a>
+    <form action="{{ route('logout') }}" method="post" class="portal-nav__link" style="margin-top:auto;border:none;background:none;padding:0">@csrf
+        <button type="submit" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:0.5rem;width:100%"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </form>
 </nav>

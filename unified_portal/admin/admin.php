@@ -21,6 +21,10 @@ $wpu_public_portal_href = (defined('WPU_PORTAL_INDEX_URL') && WPU_PORTAL_INDEX_U
     ? WPU_PORTAL_INDEX_URL
     : '/portal/index.php';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] !== 'login') {
+    wpu_abort_if_invalid_csrf();
+}
+
 // Generate CSRF token for form protection
 wpu_ensure_csrf_token();
 
@@ -143,10 +147,6 @@ if ((! defined('WPU_LARAVEL_BRIDGE') || ! WPU_LARAVEL_BRIDGE)
             $login_error = 'Invalid username or password.';
         }
     }
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] !== 'login') {
-    wpu_abort_if_invalid_csrf();
 }
 
 /* --------------------- LOGOUT --------------------- */

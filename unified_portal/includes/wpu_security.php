@@ -238,7 +238,7 @@ function wpu_require_admin_auth(bool $json = false): void
     }
 
     $login = defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE
-        ? '/admin/login'
+        ? '/login'
         : 'admin.php?page=login';
 
     header('Location: '.$login, true, 302);
@@ -282,17 +282,21 @@ function wpu_csrf_token_from_request(): string
  */
 function wpu_verify_csrf_request(bool $fail = true): bool
 {
-    wpu_secure_session_start();
-
     $token = wpu_csrf_token_from_request();
     $valid = false;
 
-    if ($token !== '' && isset($_SESSION['form_token']) && hash_equals((string) $_SESSION['form_token'], $token)) {
-        $valid = true;
-    }
+    if (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('csrf_token')) {
+        $valid = $token !== '' && hash_equals((string) csrf_token(), $token);
+    } else {
+        wpu_secure_session_start();
 
-    if (! $valid && function_exists('csrf_token') && $token !== '' && hash_equals((string) csrf_token(), $token)) {
-        $valid = true;
+        if ($token !== '' && isset($_SESSION['form_token']) && hash_equals((string) $_SESSION['form_token'], $token)) {
+            $valid = true;
+        }
+
+        if (! $valid && function_exists('csrf_token') && $token !== '' && hash_equals((string) csrf_token(), $token)) {
+            $valid = true;
+        }
     }
 
     if (! $valid && $fail) {
@@ -328,6 +332,10 @@ function wpu_require_csrf_for_mutation(array $exemptActions = []): void
 
 function wpu_ensure_csrf_token(): string
 {
+    if (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('csrf_token')) {
+        return (string) csrf_token();
+    }
+
     wpu_secure_session_start();
     if (empty($_SESSION['form_token'])) {
         $_SESSION['form_token'] = bin2hex(random_bytes(32));
@@ -338,6 +346,12 @@ function wpu_ensure_csrf_token(): string
 
 function wpu_rotate_csrf_token(): string
 {
+    if (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('session')) {
+        session()->regenerateToken();
+
+        return (string) csrf_token();
+    }
+
     wpu_secure_session_start();
     $_SESSION['form_token'] = bin2hex(random_bytes(32));
 

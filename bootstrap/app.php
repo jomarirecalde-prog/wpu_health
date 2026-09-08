@@ -1,5 +1,6 @@
 <?php
 
+use App\Services\AuthRoleService;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -11,17 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->redirectGuestsTo(function ($request) {
-            if ($request->is('portal') || $request->is('portal/*')) {
-                return route('portal.login');
-            }
-            if ($request->is('physician') || $request->is('physician/*')) {
-                return route('physician.login');
-            }
+        $middleware->redirectGuestsTo(fn () => route('login'));
 
-            return route('admin.login');
+        $middleware->redirectUsersTo(function () {
+            return app(AuthRoleService::class)->dashboardUrl();
         });
-        $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
+
+        $middleware->alias([
+            'role' => \App\Http\Middleware\EnsureRole::class,
+        ]);
 
         $middleware->append([
             \App\Http\Middleware\SecurityHeaders::class,
