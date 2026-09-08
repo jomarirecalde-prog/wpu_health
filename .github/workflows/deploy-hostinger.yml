@@ -62,6 +62,14 @@ jobs:
 
       - name: Deploy to Hostinger over SSH
         env:
+          HOSTINGER_SSH_HOST: 109.106.254.155
+          HOSTINGER_SSH_PORT: "65002"
+          HOSTINGER_SSH_USER: u899628465
+          HOSTINGER_REMOTE_ROOT: /home/u899628465/domains/wpuhealth.online/public_html
+          HOSTINGER_REMOTE_ZIP: /home/u899628465/wpu-hostinger.zip
+          HOSTINGER_APP_URL: https://wpuhealth.online
+          HOSTINGER_DB_NAME: u899628465_health_records
+          HOSTINGER_DB_USER: u899628465_wpu_health
           HOSTINGER_SSH_PASSWORD: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
           HOSTINGER_DB_PASSWORD: ${{ secrets.HOSTINGER_DB_PASSWORD }}
         run: python scripts/hostinger_deploy.py

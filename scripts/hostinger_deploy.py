@@ -28,9 +28,20 @@ import paramiko
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL_ZIP = ROOT / "wpu-hostinger.zip"
 
+DEFAULTS: dict[str, str] = {
+    "HOSTINGER_SSH_HOST": "109.106.254.155",
+    "HOSTINGER_SSH_PORT": "65002",
+    "HOSTINGER_SSH_USER": "u899628465",
+    "HOSTINGER_REMOTE_ROOT": "/home/u899628465/domains/wpuhealth.online/public_html",
+    "HOSTINGER_REMOTE_ZIP": "/home/u899628465/wpu-hostinger.zip",
+    "HOSTINGER_APP_URL": "https://wpuhealth.online",
+    "HOSTINGER_DB_NAME": "u899628465_health_records",
+    "HOSTINGER_DB_USER": "u899628465_wpu_health",
+}
+
 
 def env(name: str, default: str | None = None) -> str:
-    value = os.environ.get(name, default)
+    value = os.environ.get(name) or default or DEFAULTS.get(name)
     if value is None or value == "":
         raise SystemExit(f"Missing required environment variable: {name}")
 
@@ -39,15 +50,14 @@ def env(name: str, default: str | None = None) -> str:
 
 def config() -> dict[str, str | int]:
     ssh_user = env("HOSTINGER_SSH_USER")
-    remote_root = env("HOSTINGER_REMOTE_ROOT")
 
     return {
         "host": env("HOSTINGER_SSH_HOST"),
-        "port": int(os.environ.get("HOSTINGER_SSH_PORT", "65002")),
+        "port": int(env("HOSTINGER_SSH_PORT")),
         "user": ssh_user,
         "password": env("HOSTINGER_SSH_PASSWORD"),
-        "remote_zip": os.environ.get("HOSTINGER_REMOTE_ZIP", f"/home/{ssh_user}/wpu-hostinger.zip"),
-        "remote_root": remote_root,
+        "remote_zip": env("HOSTINGER_REMOTE_ZIP"),
+        "remote_root": env("HOSTINGER_REMOTE_ROOT"),
         "app_url": env("HOSTINGER_APP_URL").rstrip("/"),
         "db_name": env("HOSTINGER_DB_NAME"),
         "db_user": env("HOSTINGER_DB_USER"),
