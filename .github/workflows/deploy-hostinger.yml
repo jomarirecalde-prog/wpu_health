@@ -31,7 +31,7 @@ jobs:
         run: pip install -r scripts/requirements-deploy.txt
 
       - name: Build Hostinger deploy zip
-        run: python scripts/_hostinger_zip.py
+        run: python scripts/hostinger_zip.py
 
       - name: Deploy to Hostinger over SSH
         env:
