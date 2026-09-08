@@ -10,6 +10,16 @@ concurrency:
   group: deploy-hostinger
   cancel-in-progress: true
 
+env:
+  HOSTINGER_SSH_HOST: 109.106.254.155
+  HOSTINGER_SSH_PORT: "65002"
+  HOSTINGER_SSH_USER: u899628465
+  HOSTINGER_REMOTE_ROOT: /home/u899628465/domains/wpuhealth.online/public_html
+  HOSTINGER_REMOTE_ZIP: /home/u899628465/wpu-hostinger.zip
+  HOSTINGER_APP_URL: https://wpuhealth.online
+  HOSTINGER_DB_NAME: u899628465_health_records
+  HOSTINGER_DB_USER: u899628465_wpu_health
+
 jobs:
   deploy:
     name: Build and deploy
@@ -19,6 +29,23 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Verify deploy secrets
+        run: |
+          missing=0
+          if [ -z "${{ secrets.HOSTINGER_SSH_PASSWORD }}" ]; then
+            echo "::error::Missing GitHub secret: HOSTINGER_SSH_PASSWORD"
+            missing=1
+          fi
+          if [ -z "${{ secrets.HOSTINGER_DB_PASSWORD }}" ]; then
+            echo "::error::Missing GitHub secret: HOSTINGER_DB_PASSWORD"
+            missing=1
+          fi
+          if [ "$missing" -ne 0 ]; then
+            echo ""
+            echo "Add secrets at: Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -35,14 +62,6 @@ jobs:
 
       - name: Deploy to Hostinger over SSH
         env:
-          HOSTINGER_SSH_HOST: ${{ secrets.HOSTINGER_SSH_HOST }}
-          HOSTINGER_SSH_PORT: ${{ secrets.HOSTINGER_SSH_PORT }}
-          HOSTINGER_SSH_USER: ${{ secrets.HOSTINGER_SSH_USER }}
           HOSTINGER_SSH_PASSWORD: ${{ secrets.HOSTINGER_SSH_PASSWORD }}
-          HOSTINGER_REMOTE_ROOT: ${{ secrets.HOSTINGER_REMOTE_ROOT }}
-          HOSTINGER_REMOTE_ZIP: ${{ secrets.HOSTINGER_REMOTE_ZIP }}
-          HOSTINGER_APP_URL: ${{ secrets.HOSTINGER_APP_URL }}
-          HOSTINGER_DB_NAME: ${{ secrets.HOSTINGER_DB_NAME }}
-          HOSTINGER_DB_USER: ${{ secrets.HOSTINGER_DB_USER }}
           HOSTINGER_DB_PASSWORD: ${{ secrets.HOSTINGER_DB_PASSWORD }}
         run: python scripts/hostinger_deploy.py
