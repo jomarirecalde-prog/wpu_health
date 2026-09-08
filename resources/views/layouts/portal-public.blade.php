@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="{{ $wpuAssets }}/css/style.css?v={{ $wpuStyleCssV }}">
     <link rel="stylesheet" href="{{ $wpuAssets }}/css/admin-core.css?v={{ $wpuCoreCssV }}">
+    <link rel="stylesheet" href="{{ $wpuAssets }}/css/admin-his.css?v={{ $wpuHisCssV ?? filemtime(base_path('unified_portal/assets/css/admin-his.css')) }}">
     <link rel="stylesheet" href="{{ $wpuAssets }}/css/portal-shell.css?v={{ $wpuPortalShellCssV }}">
     @stack('styles')
 </head>

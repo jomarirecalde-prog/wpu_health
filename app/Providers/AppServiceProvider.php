@@ -43,7 +43,10 @@ class AppServiceProvider extends ServiceProvider
             });
         }
 
-        View::composer(['layouts.his-admin', 'admin.calendar.*'], \App\View\Composers\HisLayoutComposer::class);
-        View::composer(['layouts.portal-public', 'layouts.portal-app', 'layouts.physician-app', 'portal.*', 'physician.*'], \App\View\Composers\PortalLayoutComposer::class);
+        View::composer('layouts.his-app', \App\View\Composers\HisLayoutComposer::class);
+        View::composer(['layouts.his-admin', 'admin.calendar.*'], \App\View\Composers\HisAdminLayoutComposer::class);
+        View::composer(['layouts.portal-app', 'portal.*'], \App\View\Composers\PortalAppLayoutComposer::class);
+        View::composer(['layouts.physician-app', 'physician.*'], \App\View\Composers\PhysicianAppLayoutComposer::class);
+        View::composer(['layouts.portal-public', 'portal.home', 'portal.auth.*'], \App\View\Composers\PortalLayoutComposer::class);
     }
 }

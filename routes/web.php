@@ -61,6 +61,8 @@ Route::prefix('portal')->middleware('web')->group(function (): void {
 
         Route::get('profile', [PortalProfileController::class, 'edit'])->name('portal.profile');
         Route::put('profile', [PortalProfileController::class, 'update'])->name('portal.profile.update');
+        Route::post('profile/photo', [PortalProfileController::class, 'updatePhoto'])->name('portal.profile.photo');
+        Route::put('profile/password', [PortalProfileController::class, 'updatePassword'])->name('portal.profile.password');
 
         Route::get('notifications', [PortalNotificationController::class, 'index'])->name('portal.notifications');
         Route::post('notifications/{id}/read', [PortalNotificationController::class, 'markRead'])->name('portal.notifications.read');
