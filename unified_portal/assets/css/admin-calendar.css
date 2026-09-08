@@ -1,0 +1,243 @@
+/**
+ * WPU Medical — FullCalendar + appointment status (uses --his-* tokens from admin-his.css)
+ */
+
+/* Appointment status badges (icon + label, not color-only) */
+.status-badge--pending { background: #FFFBEB; color: #B45309; border-color: #FDE68A; }
+.status-badge--confirmed { background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+.status-badge--rejected { background: #FEF2F2; color: #B91C1C; border-color: #FECACA; }
+.status-badge--cancelled { background: #F1F5F9; color: #475569; border-color: #E2E8F0; }
+.status-badge--rescheduled { background: #F5F3FF; color: #6D28D9; border-color: #DDD6FE; }
+.status-badge--completed { background: #ECFDF5; color: #047857; border-color: #A7F3D0; }
+.status-badge--no_show { background: #FEF2F2; color: #991B1B; border-color: #FECACA; }
+
+/* Calendar filters toolbar */
+.calendar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  padding: 16px 20px;
+  background: var(--gray-50, #F8FAFC);
+  border-bottom: 1px solid var(--his-border, #E2E8F0);
+}
+.calendar-filters .form-group { margin-bottom: 0 !important; min-width: 140px; }
+.calendar-filters label { font-size: 11px !important; text-transform: uppercase; letter-spacing: 0.04em; color: var(--his-muted); margin-bottom: 4px !important; }
+
+/* FullCalendar — native HIS look */
+.wpu-calendar-wrap .fc {
+  font-family: var(--his-font, Inter, system-ui, sans-serif);
+  --fc-border-color: var(--his-border, #E2E8F0);
+  --fc-page-bg-color: var(--his-card, #fff);
+  --fc-neutral-bg-color: var(--gray-50, #F8FAFC);
+  --fc-today-bg-color: rgba(37, 99, 235, 0.06);
+  --fc-event-border-color: transparent;
+}
+.wpu-calendar-wrap .fc .fc-toolbar-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--his-text, #0F172A);
+}
+.wpu-calendar-wrap .fc .fc-button {
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--his-radius-sm, 8px);
+  border: 1px solid var(--his-border, #E2E8F0);
+  background: var(--his-card, #fff);
+  color: var(--his-text-2, #334155);
+  box-shadow: var(--his-shadow-sm);
+  text-transform: capitalize;
+}
+.wpu-calendar-wrap .fc .fc-button:hover {
+  background: var(--light-blue, #EFF6FF);
+  border-color: #BFDBFE;
+  color: var(--his-primary, #2563EB);
+}
+.wpu-calendar-wrap .fc .fc-button-primary:not(:disabled).fc-button-active,
+.wpu-calendar-wrap .fc .fc-button-primary:not(:disabled):active {
+  background: var(--his-primary, #2563EB);
+  border-color: var(--his-primary, #2563EB);
+  color: #fff;
+}
+.wpu-calendar-wrap .fc .fc-col-header-cell-cushion,
+.wpu-calendar-wrap .fc .fc-daygrid-day-number,
+.wpu-calendar-wrap .fc .fc-list-day-text,
+.wpu-calendar-wrap .fc .fc-list-day-side-text {
+  color: var(--his-text-2);
+  font-weight: 600;
+  font-size: 12px;
+  text-decoration: none;
+}
+.wpu-calendar-wrap .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+  background: var(--his-primary);
+  color: #fff;
+  border-radius: 999px;
+  width: 1.6em;
+  height: 1.6em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.wpu-calendar-wrap .fc-event {
+  border-radius: 6px;
+  padding: 2px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  border-left: 3px solid rgba(0,0,0,0.15) !important;
+}
+.wpu-calendar-wrap .fc-event:hover { filter: brightness(0.95); }
+.wpu-calendar-wrap .fc-event .fc-event-title { font-weight: 600; }
+.wpu-calendar-wrap .fc .fc-list-event:hover td { background: rgba(37,99,235,0.04); }
+
+/* Primary calendar — large literal month grid */
+.wpu-calendar-wrap--primary {
+  min-height: 640px;
+}
+.wpu-calendar-wrap--primary .fc .fc-daygrid-day-frame {
+  min-height: 110px;
+}
+.wpu-calendar-wrap--primary .fc .fc-daygrid-day-events {
+  margin-top: 4px;
+}
+.wpu-calendar-primary {
+  margin-bottom: 0;
+}
+
+/* In-cell appointment events */
+.wpu-cal-event {
+  line-height: 1.25;
+  padding: 1px 0;
+  overflow: hidden;
+}
+.wpu-cal-event__time {
+  font-size: 10px;
+  font-weight: 700;
+  opacity: 0.95;
+}
+.wpu-cal-event__name {
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wpu-cal-event__physician {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.9;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wpu-cal-event__status {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.85;
+}
+.wpu-cal-event--compact {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+}
+.wpu-cal-event--compact .wpu-cal-event__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.wpu-cal-event--compact .wpu-cal-event__time { font-size: 10px; }
+.wpu-cal-event--compact .wpu-cal-event__name {
+  flex: 1;
+  min-width: 0;
+}
+.wpu-cal-event--slot {
+  opacity: 0.85;
+  border: 1px dashed var(--his-border, #CBD5E1);
+  background: rgba(16, 185, 129, 0.08) !important;
+  color: #047857 !important;
+}
+.wpu-cal-event--slot .wpu-cal-event__name { font-weight: 500; }
+
+/* Schedule background overlays */
+.wpu-cal-bg-available { background: rgba(16, 185, 129, 0.12) !important; }
+.wpu-cal-bg-break { background: repeating-linear-gradient(-45deg, rgba(245,158,11,0.12), rgba(245,158,11,0.12) 4px, rgba(245,158,11,0.06) 4px, rgba(245,158,11,0.06) 8px) !important; }
+.wpu-cal-bg-blocked { background: rgba(239, 68, 68, 0.14) !important; }
+.wpu-cal-bg-unavailable { background: rgba(100, 116, 139, 0.12) !important; }
+
+.wpu-cal-slot-available {
+  background: rgba(16, 185, 129, 0.15) !important;
+  border-color: #6EE7B7 !important;
+  color: #047857 !important;
+}
+
+/* Date / appointment detail panels */
+.wpu-cal-date-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--his-text, #0F172A);
+}
+.wpu-cal-detail-section { margin-bottom: 14px; }
+.wpu-cal-detail-section h4 {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--his-muted, #64748B);
+  margin: 0 0 6px;
+  font-weight: 700;
+}
+.wpu-cal-detail-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.wpu-cal-detail-list li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--his-border, #E2E8F0);
+  font-size: 13px;
+}
+.wpu-cal-detail-list--blocked li { color: #B91C1C; }
+.wpu-cal-detail-apt {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: none;
+  padding: 6px 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.wpu-cal-detail-apt:hover { color: var(--his-primary, #2563EB); }
+.wpu-cal-detail-dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 8px 12px;
+  margin: 0;
+  font-size: 13px;
+}
+.wpu-cal-detail-dl dt {
+  font-weight: 600;
+  color: var(--his-muted);
+  margin: 0;
+}
+.wpu-cal-detail-dl dd { margin: 0; }
+.wpu-cal-muted { color: var(--his-muted, #64748B); font-size: 13px; }
+.wpu-cal-loading { text-align: center; padding: 20px; color: var(--his-muted); }
+
+.wpu-calendar-stats-collapsible summary::-webkit-details-marker { display: none; }
+.wpu-calendar-stats-collapsible[open] summary { border-bottom: 1px solid var(--his-border); }
+
+@media (max-width: 640px) {
+  .calendar-filters .form-group { min-width: 100%; flex: 1 1 100%; }
+  .wpu-calendar-wrap .fc .fc-toolbar { flex-direction: column; gap: 8px; }
+  .wpu-calendar-wrap--primary .fc .fc-daygrid-day-frame { min-height: 72px; }
+  .wpu-cal-event__physician,
+  .wpu-cal-event__status { display: none; }
+}

@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -39,5 +40,8 @@ class AppServiceProvider extends ServiceProvider
                 }
             });
         }
+
+        View::composer(['layouts.his-admin', 'admin.calendar.*'], \App\View\Composers\HisLayoutComposer::class);
+        View::composer(['layouts.portal-public', 'layouts.portal-app', 'layouts.physician-app', 'portal.*', 'physician.*'], \App\View\Composers\PortalLayoutComposer::class);
     }
 }

@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('wpu:maintenance')->dailyAt('03:00');
 Schedule::command('wpu:maintenance --optimize-db')->weeklyOn(0, '04:00');
+Schedule::command('appointments:send-reminders')->hourly();

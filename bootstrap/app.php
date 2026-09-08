@@ -11,7 +11,16 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        $middleware->redirectGuestsTo(fn () => route('admin.login'));
+        $middleware->redirectGuestsTo(function ($request) {
+            if ($request->is('portal') || $request->is('portal/*')) {
+                return route('portal.login');
+            }
+            if ($request->is('physician') || $request->is('physician/*')) {
+                return route('physician.login');
+            }
+
+            return route('admin.login');
+        });
         $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
 
         $middleware->append([

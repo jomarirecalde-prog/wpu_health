@@ -777,6 +777,36 @@ header.admin-topbar {
                     <i class="fas fa-notes-medical" aria-hidden="true"></i>
                     <span class="nav-link-text">Health &amp; Dental</span>
                 </a>
+                <?php
+                $wpu_calendar_base = (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('url'))
+                    ? url('/admin/calendar')
+                    : '/admin/calendar';
+                ?>
+                <div class="sidebar-section-label">Calendar</div>
+                <a href="<?php echo htmlspecialchars($wpu_calendar_base); ?>" class="nav-link">
+                    <i class="fas fa-calendar-check" aria-hidden="true"></i>
+                    <span class="nav-link-text">Calendar</span>
+                </a>
+                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/appointments'); ?>" class="nav-link">
+                    <i class="fas fa-list" aria-hidden="true"></i>
+                    <span class="nav-link-text">Appointments</span>
+                </a>
+                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/physicians'); ?>" class="nav-link">
+                    <i class="fas fa-user-md" aria-hidden="true"></i>
+                    <span class="nav-link-text">Physicians</span>
+                </a>
+                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/reports'); ?>" class="nav-link">
+                    <i class="fas fa-chart-line" aria-hidden="true"></i>
+                    <span class="nav-link-text">Appointment Reports</span>
+                </a>
+                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/portal-users'); ?>" class="nav-link">
+                    <i class="fas fa-users" aria-hidden="true"></i>
+                    <span class="nav-link-text">Portal Users</span>
+                </a>
+                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/settings'); ?>" class="nav-link">
+                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                    <span class="nav-link-text">Appointment Settings</span>
+                </a>
                 <a href="?page=reports" class="nav-link <?php echo $page === 'reports' ? 'active' : ''; ?>">
                     <i class="fas fa-chart-bar" aria-hidden="true"></i>
                     <span class="nav-link-text">Reports</span>

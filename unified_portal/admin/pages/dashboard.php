@@ -47,6 +47,24 @@
                                 }
                                 $health_result->data_seek(0);
                             }
+                            $dash_appt_today = 0;
+                            $dash_appt_pending = 0;
+                            $dash_appt_confirmed = 0;
+                            if (isset($conn) && $conn instanceof mysqli) {
+                                $today = date('Y-m-d');
+                                $tbl = @$conn->query("SHOW TABLES LIKE 'appointments'");
+                                if ($tbl && $tbl->num_rows > 0) {
+                                    $r = $conn->query("SELECT COUNT(*) AS c FROM appointments WHERE appointment_date = '".$conn->real_escape_string($today)."'");
+                                    if ($r) { $dash_appt_today = (int) ($r->fetch_assoc()['c'] ?? 0); }
+                                    $r = $conn->query("SELECT COUNT(*) AS c FROM appointments WHERE status = 'pending'");
+                                    if ($r) { $dash_appt_pending = (int) ($r->fetch_assoc()['c'] ?? 0); }
+                                    $r = $conn->query("SELECT COUNT(*) AS c FROM appointments WHERE status = 'confirmed' AND appointment_date >= '".$conn->real_escape_string($today)."'");
+                                    if ($r) { $dash_appt_confirmed = (int) ($r->fetch_assoc()['c'] ?? 0); }
+                                }
+                            }
+                            $wpu_calendar_base = (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('url'))
+                                ? url('/admin/calendar')
+                                : '/admin/calendar';
                             ?>
                             <div class="dashboard-home">
                                 <div class="dashboard-welcome">
@@ -118,6 +136,34 @@
                                         <div class="stat-spark" aria-hidden="true"><span style="height:35%"></span><span style="height:55%"></span><span style="height:45%"></span><span style="height:80%"></span><span style="height:50%"></span><span style="height:70%"></span><span style="height:95%"></span></div>
                                         <span class="stat-trend"><i class="fas fa-chart-bar"></i> Outpatient load</span>
                                         <span class="stat-card-hint">View &amp; manage</span>
+                                    </a>
+
+                                    <a class="stat-card stat-card-link" href="<?php echo htmlspecialchars($wpu_calendar_base); ?>" aria-label="Today's appointments, <?php echo (int) $dash_appt_today; ?>">
+                                        <div class="stat-header">
+                                            <div>
+                                                <div class="stat-value"><?php echo number_format((int) $dash_appt_today); ?></div>
+                                                <div class="stat-label">Today's Appointments</div>
+                                            </div>
+                                            <div class="stat-icon blue" aria-hidden="true">
+                                                <i class="fas fa-calendar-day"></i>
+                                            </div>
+                                        </div>
+                                        <span class="stat-trend"><i class="fas fa-clock"></i> <?php echo (int) $dash_appt_pending; ?> pending</span>
+                                        <span class="stat-card-hint">View calendar</span>
+                                    </a>
+
+                                    <a class="stat-card stat-card-link" href="<?php echo htmlspecialchars($wpu_calendar_base.'/appointments?status=pending'); ?>" aria-label="Pending appointments, <?php echo (int) $dash_appt_pending; ?>">
+                                        <div class="stat-header">
+                                            <div>
+                                                <div class="stat-value"><?php echo number_format((int) $dash_appt_pending); ?></div>
+                                                <div class="stat-label">Pending Appointments</div>
+                                            </div>
+                                            <div class="stat-icon orange" aria-hidden="true">
+                                                <i class="fas fa-hourglass-half"></i>
+                                            </div>
+                                        </div>
+                                        <span class="stat-trend"><i class="fas fa-check"></i> <?php echo (int) $dash_appt_confirmed; ?> confirmed upcoming</span>
+                                        <span class="stat-card-hint">Manage appointments</span>
                                     </a>
                                 </div>
 
@@ -282,7 +328,8 @@
                                         <div class="mini-calendar">
                                             <div class="day"><?php echo date('j'); ?></div>
                                             <div class="month"><?php echo htmlspecialchars(date('F Y')); ?></div>
-                                            <p style="margin:8px 0 0;font-size:12px;color:var(--his-muted);">Clinic calendar · Today</p>
+                                            <p style="margin:8px 0 0;font-size:12px;color:var(--his-muted);"><?php echo (int) $dash_appt_today; ?> appointment(s) today</p>
+                                            <a href="<?php echo htmlspecialchars($wpu_calendar_base); ?>" style="font-size:12px;margin-top:6px;display:inline-block;">View Calendar →</a>
                                         </div>
                                     </section>
                                 </div>
