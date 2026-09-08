@@ -13,6 +13,8 @@ class PortalUser extends Authenticatable
 {
     use HasFactory, Notifiable;
 
+    public const STATUSES = ['active', 'inactive', 'suspended'];
+
     protected $fillable = [
         'name',
         'email',
@@ -47,6 +49,15 @@ class PortalUser extends Authenticatable
     public function isActive(): bool
     {
         return $this->status === 'active';
+    }
+
+    public function statusBadgeClass(): string
+    {
+        return match ($this->status) {
+            'active' => 'status-badge--completed',
+            'suspended' => 'status-badge--rejected',
+            default => 'status-badge--cancelled',
+        };
     }
 
     public function appointments(): HasMany

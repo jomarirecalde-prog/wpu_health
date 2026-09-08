@@ -26,7 +26,7 @@ class PortalProfilePhotoService
     /**
      * @return array{path: string, url: string}
      */
-    public function store(PortalUser $user, UploadedFile $file): array
+    public function store(PortalUser $user, UploadedFile $file, ?string $actorUsername = null): array
     {
         $validated = $this->validateUploadedFile($file);
 
@@ -48,7 +48,16 @@ class PortalProfilePhotoService
 
         $user->forceFill(['profile_photo_path' => $relativePath])->save();
 
-        $this->audit->log($user, 'profile_photo_changed', 'Profile picture updated');
+        if ($actorUsername !== null) {
+            $this->audit->log(
+                $user,
+                'patient_profile_photo_changed',
+                'Patient #'.$user->id.' ('.$user->email.') — Patient profile photo changed',
+                $actorUsername
+            );
+        } else {
+            $this->audit->log($user, 'profile_photo_changed', 'Profile picture updated');
+        }
 
         return [
             'path' => $relativePath,

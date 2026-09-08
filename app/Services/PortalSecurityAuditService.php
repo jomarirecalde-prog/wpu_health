@@ -8,9 +8,9 @@ use Illuminate\Support\Facades\Schema;
 
 class PortalSecurityAuditService
 {
-    public function log(PortalUser $user, string $action, string $details = ''): void
+    public function log(PortalUser $user, string $action, string $details = '', ?string $actorUsername = null): void
     {
-        $username = mb_substr($user->email, 0, 50);
+        $username = mb_substr($actorUsername ?: $user->email, 0, 50);
         $ip = mb_substr(request()->ip() ?? '', 0, 45);
         $userAgent = mb_substr((string) request()->userAgent(), 0, 255);
 
@@ -33,5 +33,15 @@ class PortalSecurityAuditService
                 'created_at' => now(),
             ]);
         }
+    }
+
+    public function logAdmin(PortalUser $patient, string $action, string $details = ''): void
+    {
+        $admin = auth('admin')->user();
+        $actor = $admin?->username ?? 'admin';
+        $patientRef = 'Patient #'.$patient->id.' ('.$patient->email.')';
+        $fullDetails = $details !== '' ? $patientRef.' — '.$details : $patientRef;
+
+        $this->log($patient, $action, $fullDetails, $actor);
     }
 }

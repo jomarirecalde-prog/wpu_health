@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Enums\AppointmentStatus;
 use App\Models\Appointment;
 use App\Models\Department;
-use App\Models\PatientType;
 use App\Models\Physician;
 use App\Models\PortalUser;
 use App\Services\Appointments\AppointmentBookingService;
@@ -83,15 +82,6 @@ class CalendarController extends Controller
         Physician::query()->create($validated);
 
         return back()->with('status', 'Physician added successfully.');
-    }
-
-    public function portalUsers(): View
-    {
-        return view('admin.calendar.portal-users', [
-            'users' => PortalUser::query()->orderByDesc('created_at')->paginate(25),
-            'patientTypes' => PatientType::query()->orderBy('type_name')->get(),
-            'departments' => Department::query()->orderBy('name')->get(),
-        ]);
     }
 
     public function reports(Request $request): View

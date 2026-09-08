@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\CalendarController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\PortalUserController;
 use App\Http\Controllers\Admin\UnifiedPortalController;
 use App\Http\Controllers\Api\AppointmentApiController;
 use App\Http\Controllers\Api\CalendarApiController;
@@ -108,7 +109,12 @@ Route::middleware(['auth:admin', 'role:admin,super_admin'])->prefix('admin')->gr
         Route::post('appointments', [CalendarController::class, 'createAppointment'])->name('appointments.store');
         Route::get('physicians', [CalendarController::class, 'physicians'])->name('physicians');
         Route::post('physicians', [CalendarController::class, 'storePhysician'])->name('physicians.store');
-        Route::get('portal-users', [CalendarController::class, 'portalUsers'])->name('portal-users');
+        Route::get('portal-users', [PortalUserController::class, 'index'])->name('portal-users');
+        Route::get('portal-users/{portalUser}', [PortalUserController::class, 'show'])->name('portal-users.show');
+        Route::get('portal-users/{portalUser}/edit', [PortalUserController::class, 'edit'])->name('portal-users.edit');
+        Route::put('portal-users/{portalUser}', [PortalUserController::class, 'update'])->name('portal-users.update');
+        Route::post('portal-users/{portalUser}/photo', [PortalUserController::class, 'updatePhoto'])->name('portal-users.photo');
+        Route::put('portal-users/{portalUser}/password', [PortalUserController::class, 'updatePassword'])->name('portal-users.password');
         Route::get('reports', [CalendarController::class, 'reports'])->name('reports');
         Route::get('settings', [CalendarController::class, 'settings'])->name('settings');
         Route::put('settings', [CalendarController::class, 'updateSettings'])->name('settings.update');
