@@ -13,25 +13,27 @@
 }
 
 .mc-header {
-    display: table;
+    position: relative;
     width: 100%;
     margin-bottom: 0.35in;
-    table-layout: fixed;
+    min-height: 0.85in;
 }
 
 .mc-logo {
-    display: table-cell;
+    position: absolute;
+    left: 0;
+    top: 0;
     width: 0.85in;
-    vertical-align: top;
-    height: auto;
     max-width: 0.85in;
+    height: auto;
+    display: block;
 }
 
 .mc-header-text {
-    display: table-cell;
-    vertical-align: top;
+    display: block;
+    width: 100%;
     text-align: center;
-    padding-left: 0.15in;
+    padding: 0;
 }
 
 .mc-republic,
