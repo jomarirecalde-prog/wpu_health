@@ -66,7 +66,7 @@
     @endphp
 
     <div class="auth-shell">
-        <aside class="auth-brand" aria-label="{{ __('WPU Health Services') }}">
+        <aside class="auth-brand" aria-label="{{ $healthHubName ?? config('healthhub.name') }}">
             <div>
                 <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:2rem">
                     @if ($brandLogo)
@@ -74,7 +74,7 @@
                     @endif
                     <div>
                         <div style="font-weight:600;font-size:0.9375rem">{{ config('app.name') }}</div>
-                        <div style="font-size:0.6875rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.08em">{{ __('WPU Health Services') }}</div>
+                        <div style="font-size:0.6875rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.08em">{{ $healthHubTagline ?? config('healthhub.tagline') }}</div>
                     </div>
                 </div>
                 <h2>{{ __('One portal for all health services') }}</h2>

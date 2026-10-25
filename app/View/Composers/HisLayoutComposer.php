@@ -18,5 +18,7 @@ class HisLayoutComposer
         $view->with('wpuCalendarCssV', @filemtime(base_path('unified_portal/assets/css/admin-calendar.css')) ?: time());
         $view->with('wpuCalendarJsV', @filemtime(base_path('unified_portal/assets/js/wpu-calendar.js')) ?: time());
         $view->with('wpuFullCalendarJsV', @filemtime(base_path('unified_portal/assets/vendor/fullcalendar/index.global.min.js')) ?: time());
+        $view->with('healthHubName', config('healthhub.name'));
+        $view->with('healthHubTagline', config('healthhub.tagline'));
     }
 }

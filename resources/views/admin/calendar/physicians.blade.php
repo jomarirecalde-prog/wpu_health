@@ -1,41 +1,132 @@
 @extends('layouts.his-admin')
-@section('title', 'Physicians')
-@section('page-heading', 'Physician Management')
-@section('page-description', 'Add and manage physicians available for consultation booking.')
-@php $activeSection = 'physicians'; @endphp
+@section('title', 'Doctors Appointment')
+@section('page-heading', 'Doctors Appointment')
+@section('page-description', 'Manage physician, dentist, and other provider appointments and availability.')
+@php
+    $activeSection = 'physicians';
+    $providerCategory = request()->query('category', 'physician');
+    if (! in_array($providerCategory, ['physician', 'dentist', 'others'], true)) {
+        $providerCategory = 'physician';
+    }
+    if ($errors->any() && old('provider_category') && in_array(old('provider_category'), ['physician', 'dentist', 'others'], true)) {
+        $providerCategory = old('provider_category');
+    }
+@endphp
 @section('content')
-<div class="content-card">
-    <div class="card-header"><h2 class="card-title"><i class="fas fa-user-md"></i> Add Physician</h2></div>
-    <div class="card-body">
-        <form method="post" action="{{ route('admin.calendar.physicians.store') }}" class="form-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">@csrf
-            <div class="form-group"><label>Full Name</label><input type="text" name="name" class="form-control" required></div>
-            <div class="form-group"><label>Email</label><input type="email" name="email" class="form-control" required></div>
-            <div class="form-group"><label>Password</label><input type="password" name="password" class="form-control" required></div>
-            <div class="form-group"><label>Confirm Password</label><input type="password" name="password_confirmation" class="form-control" required></div>
-            <div class="form-group"><label>Professional Title</label><input type="text" name="professional_title" class="form-control" placeholder="Dr."></div>
-            <div class="form-group"><label>Specialization</label><input type="text" name="specialization" class="form-control"></div>
-            <div class="form-group"><label>Duration (min)</label><input type="number" name="consultation_duration" class="form-control" value="30"></div>
-            <div class="form-group"><label>Max Daily</label><input type="number" name="max_daily_appointments" class="form-control" value="20"></div>
-            <input type="hidden" name="status" value="active">
-            <div class="form-group" style="align-self:end"><button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Physician</button></div>
-        </form>
-    </div>
+<div class="cr-tabs" role="tablist" aria-label="Provider category" style="margin-bottom:1rem">
+    <button type="button" role="tab" id="provider-tab-physician"
+            class="cr-tab {{ $providerCategory === 'physician' ? 'is-active' : '' }}"
+            aria-selected="{{ $providerCategory === 'physician' ? 'true' : 'false' }}"
+            aria-controls="provider-panel-physician"
+            data-provider-category="physician">
+        <i class="fas fa-user-md" aria-hidden="true"></i> Physician
+    </button>
+    <button type="button" role="tab" id="provider-tab-dentist"
+            class="cr-tab {{ $providerCategory === 'dentist' ? 'is-active' : '' }}"
+            aria-selected="{{ $providerCategory === 'dentist' ? 'true' : 'false' }}"
+            aria-controls="provider-panel-dentist"
+            data-provider-category="dentist">
+        <i class="fas fa-tooth" aria-hidden="true"></i> Dentist
+    </button>
+    <button type="button" role="tab" id="provider-tab-others"
+            class="cr-tab {{ $providerCategory === 'others' ? 'is-active' : '' }}"
+            aria-selected="{{ $providerCategory === 'others' ? 'true' : 'false' }}"
+            aria-controls="provider-panel-others"
+            data-provider-category="others">
+        <i class="fas fa-calendar-plus" aria-hidden="true"></i> Others
+    </button>
 </div>
-<div class="content-card">
-    <div class="card-header"><h2 class="card-title"><i class="fas fa-users"></i> Physicians</h2></div>
-    <div class="card-body" style="padding:0">
-        <div class="table-responsive">
-            <table class="data-table">
-                <thead><tr><th>Physician</th><th>Specialization</th><th>Email</th><th>Status</th></tr></thead>
-                <tbody>@foreach($physicians as $p)<tr>
-                    <td data-label="Physician">{{ $p->displayName() }}</td>
-                    <td data-label="Specialization">{{ $p->specialization ?? '—' }}</td>
-                    <td data-label="Email">{{ $p->email }}</td>
-                    <td data-label="Status"><span class="status-badge {{ $p->status==='active'?'status-badge--completed':'status-badge--cancelled' }}">{{ ucfirst($p->status) }}</span></td>
-                </tr>@endforeach</tbody>
-            </table>
-        </div>
-        {{ $physicians->links() }}
-    </div>
+
+<div id="provider-panel-physician" class="cr-tab-panel" role="tabpanel" aria-labelledby="provider-tab-physician"
+     @if($providerCategory !== 'physician') hidden @endif>
+    @include('admin.calendar.partials.provider-category-panel', [
+        'category' => 'physician',
+        'addIcon' => '<i class="fas fa-user-md"></i>',
+        'addTitle' => 'Add Physician',
+        'submitIcon' => '<i class="fas fa-plus"></i>',
+        'submitLabel' => 'Add Physician',
+        'listTitle' => 'Physicians',
+        'nameColumn' => 'Physician',
+        'titlePlaceholder' => 'Dr.',
+        'providers' => $physicians,
+    ])
+</div>
+
+<div id="provider-panel-dentist" class="cr-tab-panel" role="tabpanel" aria-labelledby="provider-tab-dentist"
+     @if($providerCategory !== 'dentist') hidden @endif>
+    @include('admin.calendar.partials.provider-category-panel', [
+        'category' => 'dentist',
+        'addIcon' => '<i class="fas fa-tooth"></i>',
+        'addTitle' => 'Add Dentist',
+        'submitIcon' => '<i class="fas fa-plus"></i>',
+        'submitLabel' => 'Add Dentist',
+        'listTitle' => 'Dentists',
+        'nameColumn' => 'Dentist',
+        'titlePlaceholder' => 'DMD / DDS',
+        'specializationPlaceholder' => 'General Dentistry',
+        'defaultSpecialization' => '',
+        'providers' => $dentists,
+    ])
+</div>
+
+<div id="provider-panel-others" class="cr-tab-panel" role="tabpanel" aria-labelledby="provider-tab-others"
+     @if($providerCategory !== 'others') hidden @endif>
+    @include('admin.calendar.partials.provider-category-panel', [
+        'category' => 'others',
+        'addIcon' => '<i class="fas fa-calendar-plus"></i>',
+        'addTitle' => 'Add Provider',
+        'submitIcon' => '<i class="fas fa-plus"></i>',
+        'submitLabel' => 'Add Provider',
+        'listTitle' => 'Other providers',
+        'nameColumn' => 'Provider',
+        'titlePlaceholder' => 'RN, RPsy, etc.',
+        'specializationPlaceholder' => 'Counseling, nursing, etc.',
+        'providers' => $otherProviders,
+    ])
 </div>
 @endsection
+
+@push('scripts')
+<script>
+(function () {
+    var tabButtons = document.querySelectorAll('.cr-tabs [role="tab"][data-provider-category]');
+    var panels = {
+        physician: document.getElementById('provider-panel-physician'),
+        dentist: document.getElementById('provider-panel-dentist'),
+        others: document.getElementById('provider-panel-others')
+    };
+
+    function switchProviderCategory(category) {
+        if (!panels[category]) {
+            category = 'physician';
+        }
+
+        tabButtons.forEach(function (el) {
+            var active = el.getAttribute('data-provider-category') === category;
+            el.classList.toggle('is-active', active);
+            el.setAttribute('aria-selected', active ? 'true' : 'false');
+        });
+
+        Object.keys(panels).forEach(function (key) {
+            if (panels[key]) {
+                panels[key].hidden = key !== category;
+            }
+        });
+
+        var url = new URL(window.location.href);
+        if (category === 'physician') {
+            url.searchParams.delete('category');
+        } else {
+            url.searchParams.set('category', category);
+        }
+        window.history.replaceState({}, '', url.toString());
+    }
+
+    tabButtons.forEach(function (el) {
+        el.addEventListener('click', function () {
+            switchProviderCategory(el.getAttribute('data-provider-category'));
+        });
+    });
+})();
+</script>
+@endpush

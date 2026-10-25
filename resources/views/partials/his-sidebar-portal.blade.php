@@ -9,7 +9,7 @@
             <img src="{{ $wpuAssets }}/images/logo.png" alt="" width="40" height="40" onerror="this.style.display='none'">
         </div>
         <div class="sidebar-brand">
-            <strong>WPU Health Services</strong>
+            <strong>{{ $healthHubName ?? config('healthhub.name') }}</strong>
             <p>Consultation Portal</p>
         </div>
     </div>

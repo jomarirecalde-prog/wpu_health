@@ -1,0 +1,288 @@
+.mc-document {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    font-size: 10pt;
+    line-height: 1.5;
+    color: #000;
+    max-width: 6.5in;
+    margin: 0 auto;
+}
+
+.mc-page {
+    position: relative;
+    box-sizing: border-box;
+}
+
+.mc-header {
+    display: table;
+    width: 100%;
+    margin-bottom: 0.35in;
+    table-layout: fixed;
+}
+
+.mc-logo {
+    display: table-cell;
+    width: 0.85in;
+    vertical-align: top;
+    height: auto;
+    max-width: 0.85in;
+}
+
+.mc-header-text {
+    display: table-cell;
+    vertical-align: top;
+    text-align: center;
+    padding-left: 0.15in;
+}
+
+.mc-republic,
+.mc-tagline {
+    margin: 0;
+    font-size: 9pt;
+    line-height: 1.35;
+}
+
+.mc-univ-name {
+    margin: 0.04in 0;
+    font-weight: 700;
+    font-size: 10pt;
+    line-height: 1.25;
+}
+
+.mc-office {
+    margin: 0.12in 0 0;
+    font-weight: 700;
+    font-size: 10pt;
+}
+
+.mc-title {
+    text-align: center;
+    font-size: 10pt;
+    font-weight: 700;
+    margin: 0.15in 0 0.2in;
+}
+
+.mc-body {
+    margin-bottom: 0.1in;
+}
+
+.mc-paragraph {
+    text-align: justify;
+    margin: 0 0 0.12in;
+    text-indent: 0.5in;
+}
+
+.mc-paragraph:first-of-type {
+    text-indent: 0.5in;
+}
+
+.mc-fill {
+    border-bottom: 1px solid #000;
+    padding: 0 0.05in 0.02in;
+    font-weight: 400;
+    word-break: break-word;
+}
+
+.mc-section-label {
+    font-weight: 400;
+    margin: 0.14in 0 0.06in;
+}
+
+.mc-signature-block {
+    margin-bottom: 0.08in;
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+.mc-sig-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+
+.mc-sig-main {
+    width: 72%;
+    vertical-align: bottom;
+    padding-right: 0.15in;
+}
+
+.mc-sig-date-col {
+    width: 28%;
+    vertical-align: bottom;
+}
+
+.mc-sig-ink {
+    min-height: 0.45in;
+    margin-bottom: 0.02in;
+}
+
+.mc-sig-line {
+    border-bottom: 1px solid #000;
+    min-height: 0.22in;
+    line-height: 1.2;
+    padding-bottom: 0.02in;
+    font-size: 10pt;
+}
+
+.mc-sig-date-value {
+    text-align: left;
+}
+
+.mc-sig-caption-row td {
+    font-size: 10pt;
+    padding-top: 0.04in;
+    vertical-align: top;
+}
+
+.mc-sig-caption,
+.mc-sig-date-label {
+    font-size: 10pt;
+    color: #000;
+}
+
+.mc-sig-date-label {
+    text-align: left;
+}
+
+.mc-sig-img {
+    max-height: 0.55in;
+    max-width: 2.4in;
+    display: block;
+    object-fit: contain;
+}
+
+.mc-cert-title {
+    text-align: center;
+    font-size: 10pt;
+    font-weight: 700;
+    margin: 0.15in 0 0.15in;
+}
+
+.mc-physician-name {
+    margin: 0.08in 0 0.06in;
+}
+
+.mc-physician-table {
+    margin-top: 0.05in;
+}
+
+.mc-form-ref {
+    margin: 0.35in 0 0;
+    text-align: right;
+    font-size: 9pt;
+    font-weight: 700;
+}
+
+.consent-official-preview {
+    background: #fff;
+    border: 1px solid var(--his-border, #e2e8f0);
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    margin: 1rem 0 1.5rem;
+    overflow-x: auto;
+}
+
+.consent-official-preview .mc-document {
+    max-width: none;
+}
+
+.consent-official-preview .mc-page-2 {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px dashed #cbd5e1;
+}
+
+.consent-sig-pad-wrap {
+    margin-top: 0.5rem;
+}
+
+.consent-sig-pad-wrap canvas {
+    border: 1px solid var(--his-border, #e2e8f0);
+    border-radius: 8px;
+    touch-action: none;
+    max-width: 100%;
+    background: #fff;
+}
+
+.consent-sig-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+    flex-wrap: wrap;
+}
+
+.consent-status-badge {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.consent-status-badge.is-draft { background: #e2e8f0; color: #334155; }
+.consent-status-badge.is-awaiting { background: #fef3c7; color: #92400e; }
+.consent-status-badge.is-completed { background: #dcfce7; color: #166534; }
+.consent-status-badge.is-withdrawn { background: #fee2e2; color: #991b1b; }
+
+@media print {
+    @page {
+        size: letter portrait;
+        margin: 1in;
+    }
+
+    html,
+    body {
+        width: auto;
+        height: auto;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #fff;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .mc-document {
+        max-width: none;
+        width: 100%;
+        margin: 0;
+    }
+
+    .mc-page-1 {
+        page-break-after: always;
+        break-after: page;
+        min-height: 0;
+    }
+
+    .mc-page-2 {
+        page-break-before: always;
+        break-before: page;
+    }
+
+    .consent-official-preview {
+        border: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .consent-official-preview .mc-page-2 {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+    }
+
+    .mc-page-footer {
+        margin-top: auto;
+        padding-top: 0.2in;
+    }
+
+    .mc-page {
+        min-height: 9in;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .mc-signature-block,
+    .mc-sig-table {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+}

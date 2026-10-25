@@ -8,6 +8,21 @@ if ($page === 'dental_records') {
     $records_tab = 'health';
 }
 
+require_once __DIR__.'/../../includes/wpu_healthhub.php';
+$hd_clinical_role = wpu_healthhub_admin_role($pdo);
+$hd_show_health_tab = wpu_healthhub_can_access_records_tab($hd_clinical_role, 'health');
+$hd_show_dental_tab = wpu_healthhub_can_access_records_tab($hd_clinical_role, 'dental');
+if ($records_tab === 'health' && ! $hd_show_health_tab && $hd_show_dental_tab) {
+    $records_tab = 'dental';
+} elseif ($records_tab === 'dental' && ! $hd_show_dental_tab && $hd_show_health_tab) {
+    $records_tab = 'health';
+}
+$hd_page_title = match ($hd_clinical_role) {
+    'dentist' => 'Dental Records',
+    'physician' => 'Medical & Dental Records',
+    default => 'Medical and Dental Records',
+};
+
 $dental_offset = ($dental_page - 1) * $health_dental_items_per_page;
 $health_offset = ($health_page - 1) * $health_dental_items_per_page;
 
@@ -28,7 +43,16 @@ if (! function_exists('wpu_his_diagnosis_preview')) {
 ?>
 <div class="content-card cr-combined">
     <div class="cr-tabs-wrap">
-        <div class="cr-tabs" role="tablist" aria-label="Health and dental records">
+        <h2 class="card-title" style="margin:0 0 1rem;font-size:1.125rem"><?php echo htmlspecialchars($hd_page_title, ENT_QUOTES, 'UTF-8'); ?></h2>
+        <?php if ($hd_show_health_tab && $hd_show_dental_tab): ?>
+        <div class="cr-tabs" role="tablist" aria-label="Medical and dental records">
+            <button type="button" role="tab" id="hd-tab-health-btn"
+                    aria-selected="<?php echo $records_tab === 'health' ? 'true' : 'false'; ?>"
+                    aria-controls="health-records-tab"
+                    class="cr-tab <?php echo $records_tab === 'health' ? 'is-active' : ''; ?>"
+                    onclick="switchRecordsTab('health')">
+                <i class="fas fa-heartbeat" aria-hidden="true"></i> Medical patients
+            </button>
             <button type="button" role="tab" id="hd-tab-dental-btn"
                     aria-selected="<?php echo $records_tab === 'dental' ? 'true' : 'false'; ?>"
                     aria-controls="dental-records-tab"
@@ -36,14 +60,12 @@ if (! function_exists('wpu_his_diagnosis_preview')) {
                     onclick="switchRecordsTab('dental')">
                 <i class="fas fa-tooth" aria-hidden="true"></i> Dental records
             </button>
-            <button type="button" role="tab" id="hd-tab-health-btn"
-                    aria-selected="<?php echo $records_tab === 'health' ? 'true' : 'false'; ?>"
-                    aria-controls="health-records-tab"
-                    class="cr-tab <?php echo $records_tab === 'health' ? 'is-active' : ''; ?>"
-                    onclick="switchRecordsTab('health')">
-                <i class="fas fa-heartbeat" aria-hidden="true"></i> Health records
-            </button>
         </div>
+        <?php elseif ($hd_show_dental_tab): ?>
+            <p class="cr-intro" style="margin:0 0 1rem;color:var(--his-text-muted,#64748B);font-size:0.9375rem">Dental patient files and treatment history.</p>
+        <?php elseif ($hd_show_health_tab): ?>
+            <p class="cr-intro" style="margin:0 0 1rem;color:var(--his-text-muted,#64748B);font-size:0.9375rem">Medical clinic visits and patient files.</p>
+        <?php endif; ?>
     </div>
 
     <div id="dental-records-tab" class="cr-tab-panel" role="tabpanel" aria-labelledby="hd-tab-dental-btn"

@@ -8,8 +8,8 @@
         $authRoles = app(\App\Services\AuthRoleService::class);
         $isAuthenticated = $authRoles->isAuthenticated();
     @endphp
-    <title>{{ config('app.name') }} — WPU Health Services</title>
-    <meta name="description" content="WPU Health Services — book consultations, manage appointments, and access healthcare services for students, employees, physicians, and administrators.">
+    <title>{{ config('app.name') }} — {{ config('healthhub.tagline') }}</title>
+    <meta name="description" content="{{ config('healthhub.name') }} — {{ config('healthhub.tagline') }} Book consultations, manage appointments, and access healthcare services for students, employees, physicians, and administrators.">
     @if ($logo)
         <link rel="icon" type="image/png" href="{{ $logo }}">
     @endif
@@ -922,7 +922,7 @@
                         Trusted Healthcare Platform
                     </div>
                     <h1 id="hero-heading">
-                        <span class="highlight">WPU Health Services</span>
+                        <span class="highlight">{{ config('healthhub.name') }}</span>
                     </h1>
                     <p class="hero-desc">
                         Your unified gateway to campus health services — book consultations, view physicians,

@@ -3,7 +3,7 @@
     <button type="button" class="mobile-menu-btn" onclick="toggleSidebar()" aria-label="Open or close navigation menu" aria-expanded="false" aria-controls="sidebar">
         <i class="fas fa-bars" aria-hidden="true"></i>
     </button>
-    <span class="admin-topbar-title">WPU Health Services</span>
+    <span class="admin-topbar-title">{{ $healthHubName ?? config('healthhub.name') }}</span>
     <div class="topbar-search">
         <i class="fas fa-search search-ico" aria-hidden="true"></i>
         <label for="his-global-search" class="visually-hidden">Global search</label>

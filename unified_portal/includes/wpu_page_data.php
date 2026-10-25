@@ -15,9 +15,9 @@ $active_tab = isset($_GET['tab']) ? $_GET['tab'] : 'certificates';
 if (! in_array($active_tab, ['certificates', 'referrals'], true)) {
     $active_tab = 'certificates';
 }
-$records_tab = isset($_GET['records_tab']) ? $_GET['records_tab'] : 'dental';
+$records_tab = isset($_GET['records_tab']) ? (string) $_GET['records_tab'] : '';
 if (! in_array($records_tab, ['dental', 'health'], true)) {
-    $records_tab = 'dental';
+    $records_tab = '';
 }
 $cert_page = 1;
 $ref_page = 1;
@@ -57,6 +57,18 @@ require_once __DIR__.'/../config/connect.php';
 
 if (! ($conn instanceof mysqli)) {
     return;
+}
+
+require_once __DIR__.'/wpu_healthhub.php';
+$records_role = wpu_healthhub_admin_role($pdo);
+if ($records_tab === '') {
+    $records_tab = wpu_healthhub_default_records_tab($records_role);
+}
+if (! wpu_healthhub_can_access_records_tab($records_role, $records_tab)) {
+    $records_tab = wpu_healthhub_default_records_tab($records_role);
+    if (! wpu_healthhub_can_access_records_tab($records_role, $records_tab)) {
+        $records_tab = wpu_healthhub_can_access_records_tab($records_role, 'dental') ? 'dental' : 'health';
+    }
 }
 
 $autoLock = wpu_get_auto_lock_settings($pdo);
@@ -150,6 +162,7 @@ if ($needsCertData) {
 }
 
 if ($needsRecordData) {
+    try {
     $dental_page = max(1, isset($_GET['dental_page']) ? (int) $_GET['dental_page'] : 1);
     $dental_search = isset($_GET['dental_search']) ? wpu_sanitize_search_term((string) $_GET['dental_search']) : '';
     $search_records = isset($_GET['search']) ? wpu_sanitize_search_term((string) $_GET['search']) : '';
@@ -216,5 +229,9 @@ if ($needsRecordData) {
         $healthListStmt->bind_param('sii', $healthLike, $health_dental_items_per_page, $health_offset);
         $healthListStmt->execute();
         $health_result = $healthListStmt->get_result();
+    }
+    } catch (mysqli_sql_exception $e) {
+        error_log('[WPU page data] patient records: '.$e->getMessage());
+        $GLOBALS['error_message'] = 'Unable to load patient records. If this persists, run database migrations or contact the administrator.';
     }
 }

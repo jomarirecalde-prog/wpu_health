@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\PortalUserController;
 use App\Http\Controllers\Admin\UnifiedPortalController;
 use App\Http\Controllers\Api\AppointmentApiController;
 use App\Http\Controllers\Api\CalendarApiController;
+use App\Http\Controllers\Api\DispensaryApiController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\Physician\AppointmentController as PhysicianAppointmentController;
@@ -72,7 +73,14 @@ Route::prefix('portal')->middleware('web')->group(function (): void {
 
 // Physician Portal
 Route::prefix('physician')->middleware('web')->group(function (): void {
-    Route::middleware(['auth:physician', 'role:physician'])->group(function (): void {
+    Route::middleware(['auth:physician', 'role:dentist'])->prefix('workspace')->group(function (): void {
+        Route::any('{path?}', UnifiedPortalController::class)
+            ->middleware('workspace.access')
+            ->where('path', '.*')
+            ->name('physician.workspace');
+    });
+
+    Route::middleware(['auth:physician', 'role:physician,dentist'])->group(function (): void {
         Route::get('/', [PhysicianDashboardController::class, 'index'])->name('physician.dashboard');
 
         Route::get('appointments', [PhysicianAppointmentController::class, 'index'])->name('physician.appointments');
@@ -95,30 +103,35 @@ Route::prefix('physician')->middleware('web')->group(function (): void {
 Route::get('admin', function () {
     $roles = app(\App\Services\AuthRoleService::class);
 
-    return $roles->hasRole('admin', 'super_admin')
-        ? redirect()->route('admin.dashboard')
+    return $roles->currentGuard() === 'admin'
+        ? redirect()->to($roles->dashboardUrl())
         : redirect()->route('login');
 })->name('admin.index');
 
-Route::middleware(['auth:admin', 'role:admin,super_admin'])->prefix('admin')->group(function (): void {
-    Route::get('dashboard', DashboardController::class)->name('admin.dashboard');
+Route::middleware(['auth:admin', 'role:admin,super_admin,physician,dentist,nurse,staff'])->prefix('admin')->group(function (): void {
+    Route::get('dashboard', DashboardController::class)
+        ->middleware('role:admin,super_admin')
+        ->name('admin.dashboard');
 
-    Route::prefix('calendar')->name('admin.calendar.')->group(function (): void {
-        Route::get('/', [CalendarController::class, 'index'])->name('index');
-        Route::get('appointments', [CalendarController::class, 'appointments'])->name('appointments');
-        Route::post('appointments', [CalendarController::class, 'createAppointment'])->name('appointments.store');
-        Route::get('physicians', [CalendarController::class, 'physicians'])->name('physicians');
-        Route::post('physicians', [CalendarController::class, 'storePhysician'])->name('physicians.store');
-        Route::get('portal-users', [PortalUserController::class, 'index'])->name('portal-users');
-        Route::get('portal-users/{portalUser}', [PortalUserController::class, 'show'])->name('portal-users.show');
-        Route::get('portal-users/{portalUser}/edit', [PortalUserController::class, 'edit'])->name('portal-users.edit');
-        Route::put('portal-users/{portalUser}', [PortalUserController::class, 'update'])->name('portal-users.update');
-        Route::post('portal-users/{portalUser}/photo', [PortalUserController::class, 'updatePhoto'])->name('portal-users.photo');
-        Route::put('portal-users/{portalUser}/password', [PortalUserController::class, 'updatePassword'])->name('portal-users.password');
-        Route::get('reports', [CalendarController::class, 'reports'])->name('reports');
-        Route::get('settings', [CalendarController::class, 'settings'])->name('settings');
-        Route::put('settings', [CalendarController::class, 'updateSettings'])->name('settings.update');
-    });
+    Route::prefix('calendar')
+        ->middleware('clinical.access')
+        ->name('admin.calendar.')
+        ->group(function (): void {
+            Route::get('/', [CalendarController::class, 'index'])->name('index');
+            Route::get('appointments', [CalendarController::class, 'appointments'])->name('appointments');
+            Route::post('appointments', [CalendarController::class, 'createAppointment'])->name('appointments.store');
+            Route::get('physicians', [CalendarController::class, 'physicians'])->name('physicians');
+            Route::post('physicians', [CalendarController::class, 'storePhysician'])->name('physicians.store');
+            Route::get('portal-users', [PortalUserController::class, 'index'])->name('portal-users');
+            Route::get('portal-users/{portalUser}', [PortalUserController::class, 'show'])->name('portal-users.show');
+            Route::get('portal-users/{portalUser}/edit', [PortalUserController::class, 'edit'])->name('portal-users.edit');
+            Route::put('portal-users/{portalUser}', [PortalUserController::class, 'update'])->name('portal-users.update');
+            Route::post('portal-users/{portalUser}/photo', [PortalUserController::class, 'updatePhoto'])->name('portal-users.photo');
+            Route::put('portal-users/{portalUser}/password', [PortalUserController::class, 'updatePassword'])->name('portal-users.password');
+            Route::get('reports', [CalendarController::class, 'reports'])->name('reports');
+            Route::get('settings', [CalendarController::class, 'settings'])->name('settings');
+            Route::put('settings', [CalendarController::class, 'updateSettings'])->name('settings.update');
+        });
 
     Route::prefix('workspace')->group(function (): void {
         Route::get('exit', function () {
@@ -130,6 +143,7 @@ Route::middleware(['auth:admin', 'role:admin,super_admin'])->prefix('admin')->gr
         })->name('admin.workspace.exit');
 
         Route::any('{path?}', UnifiedPortalController::class)
+            ->middleware('workspace.access')
             ->where('path', '.*')
             ->name('admin.workspace');
     });
@@ -163,5 +177,10 @@ Route::prefix('api')->middleware('web')->group(function (): void {
         Route::post('appointments/{appointment}/cancel', [AppointmentApiController::class, 'cancel']);
         Route::post('appointments/{appointment}/reschedule', [AppointmentApiController::class, 'reschedule']);
         Route::post('calendar/appointments', [CalendarApiController::class, 'adminStore']);
+
+        Route::get('dispensary/items', [DispensaryApiController::class, 'index']);
+        Route::post('dispensary/items', [DispensaryApiController::class, 'store']);
+        Route::get('dispensary/items/{item}', [DispensaryApiController::class, 'show']);
+        Route::post('dispensary/items/{item}/movements', [DispensaryApiController::class, 'storeMovement']);
     });
 });

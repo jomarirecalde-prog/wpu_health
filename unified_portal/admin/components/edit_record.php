@@ -5,6 +5,8 @@ wpu_bootstrap_admin_api();
 require_once '../../config/database.php';
 require_once __DIR__ . '/../../includes/pdo_activity_log.php';
 require_once __DIR__ . '/patient_record_quick_view_lib.php';
+require_once __DIR__.'/../../includes/wpu_healthhub.php';
+require_once __DIR__.'/wpu_record_consent_bridge.php';
 $pdo = getDBConnection();
 
 // Handle POST request - Update record
@@ -32,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $assessment = $_POST['assessment'] ?? '';
     $plan = $_POST['plan'] ?? '';
     $doctor = $_POST['doctor'] ?? '';
+    $transaction_type = trim((string) ($_POST['transaction_type'] ?? ''));
 
     $response = ['success' => false, 'message' => ''];
 
@@ -59,13 +62,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     } else {
         try {
             // Get module_type from existing record to preserve it
-            $checkStmt = $pdo->prepare("SELECT module_type FROM patient_records WHERE id = ?");
+            $checkStmt = $pdo->prepare("SELECT * FROM patient_records WHERE id = ?");
             $checkStmt->execute([$record_id]);
             $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$existing) {
                 $response['message'] = "Record not found.";
             } else {
+                $role = wpu_healthhub_admin_role($pdo);
+                $moduleType = (string) ($existing['module_type'] ?? 'health');
+                $gate = wpu_record_consent_gate_from_post($pdo, $moduleType, $_POST, $role, $existing);
+                if (! $gate['ok']) {
+                    header('Content-Type: application/json');
+                    echo json_encode($gate['response']);
+                    exit;
+                }
+                $linkedConsentId = (int) $gate['consent_id'];
                 $beforeRow = fetch_patient_record_for_quick_view($pdo, (int) $record_id);
                 $snapshotJson = $beforeRow ? patient_record_quick_view_encode_snapshot($beforeRow) : null;
                 $editor = (string) ($_SESSION['admin_username'] ?? '');
@@ -119,6 +131,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
                     }
                     throw $e;
                 }
+
+                wpu_record_apply_consent_metadata($pdo, (int) $record_id, $linkedConsentId, $transaction_type);
 
                 if ($editor !== '' && function_exists('wpu_insert_activity_log')) {
                     $modLabel = ucfirst((string) ($existing['module_type'] ?? 'record'));

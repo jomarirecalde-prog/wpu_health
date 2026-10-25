@@ -52,10 +52,24 @@ class CalendarController extends Controller
         ]);
     }
 
-    public function physicians(): View
+    public function physicians(Request $request): View
     {
         return view('admin.calendar.physicians', [
-            'physicians' => Physician::query()->orderBy('name')->paginate(20),
+            'physicians' => Physician::query()
+                ->where('provider_category', 'physician')
+                ->orderBy('name')
+                ->paginate(20, ['*'], 'physician_page')
+                ->withQueryString(),
+            'dentists' => Physician::query()
+                ->where('provider_category', 'dentist')
+                ->orderBy('name')
+                ->paginate(20, ['*'], 'dentist_page')
+                ->withQueryString(),
+            'otherProviders' => Physician::query()
+                ->where('provider_category', 'others')
+                ->orderBy('name')
+                ->paginate(20, ['*'], 'others_page')
+                ->withQueryString(),
             'departments' => Department::query()->orderBy('name')->get(),
             'staffSignatures' => \App\Models\StaffSignature::query()->orderBy('name')->get(),
             'consultationTypes' => config('appointments.consultation_types'),
@@ -77,11 +91,23 @@ class CalendarController extends Controller
             'max_daily_appointments' => 'nullable|integer|min:1|max:100',
             'staff_signature_id' => 'nullable|integer',
             'status' => 'required|in:active,inactive',
+            'provider_category' => 'required|in:physician,dentist,others',
         ]);
 
+        $category = $validated['provider_category'];
         Physician::query()->create($validated);
 
-        return back()->with('status', 'Physician added successfully.');
+        $message = match ($category) {
+            'dentist' => 'Dentist added successfully.',
+            'others' => 'Provider added successfully.',
+            default => 'Physician added successfully.',
+        };
+
+        $redirectParams = $category === 'physician' ? [] : ['category' => $category];
+
+        return redirect()
+            ->route('admin.calendar.physicians', $redirectParams)
+            ->with('status', $message);
     }
 
     public function reports(Request $request): View

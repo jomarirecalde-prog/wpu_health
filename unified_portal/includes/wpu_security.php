@@ -205,7 +205,16 @@ function wpu_is_admin_logged_in(): bool
 function wpu_admin_url(array $query = []): string
 {
     if (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('route')) {
-        $url = route('admin.workspace', ['path' => 'admin/admin.php']);
+        $workspaceRoute = defined('WPU_LARAVEL_WORKSPACE_ROUTE') && WPU_LARAVEL_WORKSPACE_ROUTE !== ''
+            ? (string) WPU_LARAVEL_WORKSPACE_ROUTE
+            : 'admin.workspace';
+        if ($workspaceRoute !== 'physician.workspace'
+            && function_exists('auth')
+            && auth()->guard('physician')->check()
+            && ! auth()->guard('admin')->check()) {
+            $workspaceRoute = 'physician.workspace';
+        }
+        $url = route($workspaceRoute, ['path' => 'admin/admin.php']);
     } else {
         $url = 'admin.php';
     }

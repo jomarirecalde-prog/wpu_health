@@ -15,6 +15,7 @@ require_once '../config/database.php';
 require_once '../includes/pdo_activity_log.php';
 require_once '../includes/wpu_cache.php';
 require_once '../includes/wpu_page_router.php';
+require_once '../includes/wpu_healthhub.php';
 $pdo = getDBConnection();
 
 $wpu_public_portal_href = (defined('WPU_PORTAL_INDEX_URL') && WPU_PORTAL_INDEX_URL !== '')
@@ -296,11 +297,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         } elseif ($policyError = wpu_validate_password_policy($password)) {
             $error_message = $policyError;
         } else {
-            $stmt = $pdo->prepare("INSERT INTO admins (username, password, password_changed_at) VALUES (?, ?, NOW())");
-            $stmt->execute([$username, wpu_hash_new_password($password)]);
-            $success_message = "Admin added successfully";
-            wpu_insert_activity_log($pdo, $current_user, 'Admin account created', 'New username: '.$username);
-            wpu_security_audit($pdo, 'admin_created', 'Username: '.$username);
+            $role = strtolower(trim((string) ($_POST['role'] ?? 'admin')));
+            $allowedRoles = ['super_admin', 'admin', 'physician', 'dentist', 'nurse', 'staff'];
+            if (! in_array($role, $allowedRoles, true)) {
+                $role = 'admin';
+            }
+            $email = strtolower(trim((string) ($_POST['email'] ?? '')));
+            if ($email !== '' && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                $error_message = 'Invalid email address.';
+            } elseif (wpu_schema_has_column($pdo, 'admins', 'email') && wpu_schema_has_column($pdo, 'admins', 'role')) {
+                $stmt = $pdo->prepare('INSERT INTO admins (username, email, password, role, password_changed_at) VALUES (?, ?, ?, ?, NOW())');
+                $stmt->execute([$username, $email !== '' ? $email : null, wpu_hash_new_password($password), $role]);
+            } else {
+                $stmt = $pdo->prepare('INSERT INTO admins (username, password, password_changed_at) VALUES (?, ?, NOW())');
+                $stmt->execute([$username, wpu_hash_new_password($password)]);
+            }
+            if (! isset($error_message)) {
+                $success_message = 'Admin added successfully';
+                wpu_insert_activity_log($pdo, $current_user, 'Admin account created', 'New username: '.$username);
+                wpu_security_audit($pdo, 'admin_created', 'Username: '.$username);
+            }
         }
     } elseif (isset($_POST['update'])) {
         if ($policyError = wpu_validate_password_policy($password)) {
@@ -514,6 +530,12 @@ if (!$logged_in && $page !== 'login') {
     $page = 'login';
 }
 
+if ($logged_in && $page !== 'login') {
+    wpu_healthhub_enforce_workspace_page($pdo, $page);
+}
+
+$clinical_role = $logged_in ? wpu_healthhub_admin_role($pdo) : 'guest';
+
 // Page-aware data loading (cached reference data, queries only when logged in + per page)
 require_once '../includes/wpu_page_data.php';
 
@@ -530,6 +552,9 @@ if (! isset($error_message) && isset($GLOBALS['error_message'])) {
     $wpu_csrf_meta = function_exists('csrf_token') ? (string) csrf_token() : wpu_ensure_csrf_token();
     ?>
     <meta name="csrf-token" content="<?php echo htmlspecialchars($wpu_csrf_meta, ENT_QUOTES, 'UTF-8'); ?>">
+    <?php if (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('url')): ?>
+    <meta name="app-base" content="<?php echo htmlspecialchars(rtrim(url('/'), '/'), ENT_QUOTES, 'UTF-8'); ?>">
+    <?php endif; ?>
     <script>
     (function () {
         var m = document.querySelector('meta[name="csrf-token"]');
@@ -756,80 +781,12 @@ header.admin-topbar {
                     <img src="<?php echo htmlspecialchars($his_assets, ENT_QUOTES, 'UTF-8'); ?>/images/logo.png" alt="WPU Medical Logo">
                 </div>
                 <div class="sidebar-brand">
-                    <h2>WPU Health</h2>
-                    <p>Enterprise HIS</p>
+                    <h2><?php echo htmlspecialchars(wpu_healthhub_name(), ENT_QUOTES, 'UTF-8'); ?></h2>
+                    <p><?php echo htmlspecialchars(wpu_healthhub_portal_title($clinical_role), ENT_QUOTES, 'UTF-8'); ?></p>
                 </div>
             </div>
-            
-            <nav class="sidebar-menu sidebar-nav" aria-label="Admin modules">
-                <div class="sidebar-section-label">Overview</div>
-                <a href="?page=dashboard" class="nav-link <?php echo $page === 'dashboard' ? 'active' : ''; ?>">
-                    <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
-                    <span class="nav-link-text">Dashboard</span>
-                </a>
 
-                <div class="sidebar-section-label">Clinical</div>
-                <a href="?page=certificates_referrals&tab=certificates" class="nav-link <?php echo ($page === 'certificates' || $page === 'referrals' || $page === 'certificates_referrals') ? 'active' : ''; ?>">
-                    <i class="fas fa-file-medical" aria-hidden="true"></i>
-                    <span class="nav-link-text">Certificates &amp; Referrals</span>
-                </a>
-                <a href="?page=health_dental_records&records_tab=dental" class="nav-link <?php echo ($page === 'dental_records' || $page === 'health_records' || $page === 'health_dental_records' || $page === 'view_record') ? 'active' : ''; ?>">
-                    <i class="fas fa-notes-medical" aria-hidden="true"></i>
-                    <span class="nav-link-text">Health &amp; Dental</span>
-                </a>
-                <?php
-                $wpu_calendar_base = (defined('WPU_LARAVEL_BRIDGE') && WPU_LARAVEL_BRIDGE && function_exists('url'))
-                    ? url('/admin/calendar')
-                    : '/admin/calendar';
-                ?>
-                <div class="sidebar-section-label">Calendar</div>
-                <a href="<?php echo htmlspecialchars($wpu_calendar_base); ?>" class="nav-link">
-                    <i class="fas fa-calendar-check" aria-hidden="true"></i>
-                    <span class="nav-link-text">Calendar</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/appointments'); ?>" class="nav-link">
-                    <i class="fas fa-list" aria-hidden="true"></i>
-                    <span class="nav-link-text">Appointments</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/physicians'); ?>" class="nav-link">
-                    <i class="fas fa-user-md" aria-hidden="true"></i>
-                    <span class="nav-link-text">Physicians</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/reports'); ?>" class="nav-link">
-                    <i class="fas fa-chart-line" aria-hidden="true"></i>
-                    <span class="nav-link-text">Appointment Reports</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/portal-users'); ?>" class="nav-link">
-                    <i class="fas fa-users" aria-hidden="true"></i>
-                    <span class="nav-link-text">Portal Users</span>
-                </a>
-                <a href="<?php echo htmlspecialchars($wpu_calendar_base.'/settings'); ?>" class="nav-link">
-                    <i class="fas fa-sliders-h" aria-hidden="true"></i>
-                    <span class="nav-link-text">Appointment Settings</span>
-                </a>
-                <a href="?page=reports" class="nav-link <?php echo $page === 'reports' ? 'active' : ''; ?>">
-                    <i class="fas fa-chart-bar" aria-hidden="true"></i>
-                    <span class="nav-link-text">Reports</span>
-                </a>
-
-                <div class="sidebar-section-label">Administration</div>
-                <a href="?page=settings" class="nav-link <?php echo $page === 'settings' ? 'active' : ''; ?>">
-                    <i class="fas fa-cog" aria-hidden="true"></i>
-                    <span class="nav-link-text">Settings</span>
-                </a>
-                <a href="?page=admin_management" class="nav-link <?php echo $page === 'admin_management' ? 'active' : ''; ?>">
-                    <i class="fas fa-user-shield" aria-hidden="true"></i>
-                    <span class="nav-link-text">User Management</span>
-                </a>
-                <a href="?page=user_logs" class="nav-link <?php echo $page === 'user_logs' ? 'active' : ''; ?>">
-                    <i class="fas fa-history" aria-hidden="true"></i>
-                    <span class="nav-link-text">Activity Logs</span>
-                </a>
-                <a href="?page=backup" class="nav-link <?php echo $page === 'backup' ? 'active' : ''; ?>">
-                    <i class="fas fa-database" aria-hidden="true"></i>
-                    <span class="nav-link-text">Backup</span>
-                </a>
-            </nav>
+            <?php require __DIR__.'/partials/sidebar_nav.php'; ?>
             
             <div class="user-info">
                 <div class="user-avatar" aria-hidden="true">
@@ -967,6 +924,11 @@ header.admin-topbar {
                     case 'admin_management': $his_page_title = 'Admin Management'; break;
                     case 'user_logs': $his_page_title = 'User Logs'; break;
                     case 'backup': $his_page_title = 'Backup & Export'; break;
+                    case 'consent_refusal_module': $his_page_title = 'Consent & Refusal'; break;
+                    case 'secure_consent': $his_page_title = 'Medical Consent Form'; break;
+                    case 'view_consent': $his_page_title = 'Consent Records'; break;
+                    case 'consent_refusal': $his_page_title = 'Refusal of Consent'; break;
+                    case 'view_refusal': $his_page_title = 'Refusal records'; break;
                 }
                 ?>
                 <div class="header">
@@ -1560,6 +1522,13 @@ header.admin-topbar {
                                     <label class="form-label">Treatment *</label>
                                     <textarea id="dental_treatment" name="treatment" required rows="3"></textarea>
                                 </div>
+                                <?php
+                                $rcf_prefix = 'dental_';
+                                $rcf_module = 'dental';
+                                $rcf_transactions = wpu_healthhub_transactions();
+                                $rcf_show_bypass = in_array($clinical_role, ['super_admin', 'physician'], true);
+                                include __DIR__.'/partials/record_consent_fields.php';
+                                ?>
                                 <div class="form-group">
                                     <label class="form-label">Subjective</label>
                                     <textarea id="dental_subjective" name="subjective" rows="2"></textarea>
@@ -1703,6 +1672,13 @@ header.admin-topbar {
                                     <label class="form-label">Treatment *</label>
                                     <textarea id="dental_edit_treatment" name="treatment" required rows="3"></textarea>
                                 </div>
+                                <?php
+                                $rcf_prefix = 'dental_edit_';
+                                $rcf_module = 'dental';
+                                $rcf_transactions = wpu_healthhub_transactions();
+                                $rcf_show_bypass = in_array($clinical_role, ['super_admin', 'physician'], true);
+                                include __DIR__.'/partials/record_consent_fields.php';
+                                ?>
                                 <div class="form-group">
                                     <label class="form-label">Subjective</label>
                                     <textarea id="dental_edit_subjective" name="subjective" rows="2"></textarea>
@@ -1843,6 +1819,13 @@ header.admin-topbar {
                                     <label class="form-label">Treatment *</label>
                                     <textarea id="health_treatment" name="treatment" required rows="3"></textarea>
                                 </div>
+                                <?php
+                                $rcf_prefix = 'health_';
+                                $rcf_module = 'health';
+                                $rcf_transactions = wpu_healthhub_transactions();
+                                $rcf_show_bypass = in_array($clinical_role, ['super_admin', 'physician'], true);
+                                include __DIR__.'/partials/record_consent_fields.php';
+                                ?>
                                 <div class="form-group">
                                     <label class="form-label">Subjective</label>
                                     <textarea id="health_subjective" name="subjective" rows="2"></textarea>
@@ -1986,6 +1969,13 @@ header.admin-topbar {
                                     <label class="form-label">Treatment *</label>
                                     <textarea id="health_edit_treatment" name="treatment" required rows="3"></textarea>
                                 </div>
+                                <?php
+                                $rcf_prefix = 'health_edit_';
+                                $rcf_module = 'health';
+                                $rcf_transactions = wpu_healthhub_transactions();
+                                $rcf_show_bypass = in_array($clinical_role, ['super_admin', 'physician'], true);
+                                include __DIR__.'/partials/record_consent_fields.php';
+                                ?>
                                 <div class="form-group">
                                     <label class="form-label">Subjective</label>
                                     <textarea id="health_edit_subjective" name="subjective" rows="2"></textarea>

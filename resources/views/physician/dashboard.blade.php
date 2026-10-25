@@ -1,7 +1,7 @@
 @extends('layouts.physician-app')
 @section('title', 'Dashboard')
-@section('page-heading', 'Physician Dashboard')
-@section('page-description', 'Today\'s consultations and upcoming appointments.')
+@section('page-heading', $providerPortalTitle ?? 'Physician Dashboard')
+@section('page-description', $providerPortalSubtitle ?? 'Today\'s consultations and upcoming appointments.')
 @section('content')
 <div class="stats-grid dashboard-stats">
     <div class="stat-card">

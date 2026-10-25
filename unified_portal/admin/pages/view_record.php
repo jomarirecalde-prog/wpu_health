@@ -17,6 +17,23 @@
                                 $record = $stmt->fetch(PDO::FETCH_ASSOC);
                                 
                                 if ($record):
+                                    require_once __DIR__.'/../../includes/wpu_healthhub.php';
+                                    $viewerRole = wpu_healthhub_admin_role($pdo);
+                                    if (strtolower((string) $module) === 'health') {
+                                        if (! wpu_healthhub_can_access_records_tab($viewerRole, 'health')) {
+                                            echo '<div class="alert alert-error">You do not have permission to view medical records.</div>';
+                                            return;
+                                        }
+                                        $record = wpu_healthhub_filter_medical_record(
+                                            $record,
+                                            $viewerRole
+                                        );
+                                    } elseif (strtolower((string) $module) === 'dental') {
+                                        if (! wpu_healthhub_can_access_records_tab($viewerRole, 'dental')) {
+                                            echo '<div class="alert alert-error">You do not have permission to view dental records.</div>';
+                                            return;
+                                        }
+                                    }
                                     $rv_name = trim((string) ($record['full_name'] ?? ''));
                                     $rv_parts = preg_split('/\s+/', $rv_name);
                                     if (count($rv_parts) >= 2) {
@@ -121,6 +138,24 @@
                                         Back to <?php echo htmlspecialchars(ucfirst((string) $module), ENT_QUOTES, 'UTF-8'); ?> records
                                     </a>
                                     <div class="record-view-toolbar-actions">
+                                        <?php if (wpu_healthhub_can_access_workspace_page($viewerRole, 'consent_refusal_module')): ?>
+                                        <a class="btn btn-success" href="?page=consent_refusal_module&amp;patient_record_id=<?php echo (int) $record['id']; ?>">
+                                            <i class="fas fa-file-contract" aria-hidden="true"></i>
+                                            Consent &amp; Refusal
+                                        </a>
+                                        <?php elseif (wpu_healthhub_can_access_workspace_page($viewerRole, 'secure_consent')): ?>
+                                        <a class="btn btn-success" href="?page=secure_consent&amp;patient_record_id=<?php echo (int) $record['id']; ?>">
+                                            <i class="fas fa-file-signature" aria-hidden="true"></i>
+                                            Medical consent
+                                        </a>
+                                        <?php
+                                        $rv_consent_id = (int) ($record['consent_record_id'] ?? 0);
+                                        if ($rv_consent_id > 0): ?>
+                                        <a class="btn btn-secondary" href="?page=view_consent&amp;id=<?php echo $rv_consent_id; ?>">
+                                            View consent #<?php echo $rv_consent_id; ?>
+                                        </a>
+                                        <?php endif; ?>
+                                        <?php endif; ?>
                                         <button type="button" class="btn btn-warning" onclick="open<?php echo ucfirst($module); ?>EditModal(<?php echo (int) $record['id']; ?>)">
                                             <i class="fas fa-edit" aria-hidden="true"></i>
                                             Edit record

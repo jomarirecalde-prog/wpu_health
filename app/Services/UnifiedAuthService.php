@@ -26,6 +26,13 @@ class UnifiedAuthService
         }
 
         if (str_contains($identifier, '@')) {
+            $email = strtolower(trim($identifier));
+
+            $adminEmailResult = $this->attemptAdminByEmail($email, $password);
+            if ($adminEmailResult['success']) {
+                return $adminEmailResult;
+            }
+
             $portalResult = $this->attemptPortal($identifier, $password, $remember);
             if ($portalResult['success']) {
                 return $portalResult;
@@ -82,6 +89,43 @@ class UnifiedAuthService
         }
 
         Auth::guard('physician')->login($physician, $remember);
+
+        return ['success' => true, 'message' => ''];
+    }
+
+    /**
+     * Authorized university staff emails (explicit allow list — not open domain).
+     *
+     * @return array{success: bool, message: string}
+     */
+    private function attemptAdminByEmail(string $email, string $password): array
+    {
+        $allowed = config('healthhub.authorized_staff_emails', []);
+        if ($allowed === [] || ! in_array($email, $allowed, true)) {
+            return $this->failure();
+        }
+
+        if ($this->adminSecurity->isLocked($email)) {
+            return [
+                'success' => false,
+                'message' => __('Too many failed attempts. Try again later.'),
+            ];
+        }
+
+        $admin = Admin::query()
+            ->where(function ($query) use ($email) {
+                $query->where('email', $email)->orWhere('username', $email);
+            })
+            ->first();
+
+        if (! $admin || ! $this->adminSecurity->verifyPassword($admin, $password)) {
+            $this->adminSecurity->recordAttempt($email, false);
+
+            return $this->failure();
+        }
+
+        $this->adminSecurity->recordAttempt($email, true);
+        Auth::guard('admin')->login($admin);
 
         return ['success' => true, 'message' => ''];
     }

@@ -20,6 +20,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureRole::class,
+            'workspace.access' => \App\Http\Middleware\EnsureWorkspacePageAccess::class,
+            'clinical.access' => \App\Http\Middleware\EnsureClinicalRouteAccess::class,
         ]);
 
         $middleware->append([

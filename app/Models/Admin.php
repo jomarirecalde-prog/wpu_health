@@ -11,6 +11,7 @@ class Admin extends Authenticatable
     /** @var list<string> */
     protected $fillable = [
         'username',
+        'email',
         'password',
         'role',
         'failed_login_attempts',
@@ -23,6 +24,17 @@ class Admin extends Authenticatable
     public function isSuperAdmin(): bool
     {
         return $this->role === 'super_admin';
+    }
+
+    public function clinicalRole(): string
+    {
+        if ($this->isSuperAdmin()) {
+            return 'super_admin';
+        }
+
+        $role = strtolower(trim((string) ($this->role ?? 'admin')));
+
+        return $role !== '' ? $role : 'admin';
     }
 
     /** @var list<string> */

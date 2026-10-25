@@ -25,6 +25,7 @@ class Physician extends Authenticatable
         'max_daily_appointments',
         'consultation_types',
         'status',
+        'provider_category',
     ];
 
     protected $hidden = [
@@ -50,6 +51,28 @@ class Physician extends Authenticatable
         $title = $this->professional_title ? $this->professional_title.' ' : '';
 
         return $title.$this->name;
+    }
+
+    public function isDentist(): bool
+    {
+        $category = strtolower(trim((string) ($this->provider_category ?? '')));
+        if ($category === 'dentist') {
+            return true;
+        }
+
+        $specialization = strtolower((string) ($this->specialization ?? ''));
+        if ($specialization !== '' && str_contains($specialization, 'dent')) {
+            return true;
+        }
+
+        $title = strtoupper(trim((string) ($this->professional_title ?? '')));
+
+        return $title === 'DMD' || str_contains($title, 'DMD');
+    }
+
+    public function clinicalPortalRole(): string
+    {
+        return $this->isDentist() ? 'dentist' : 'physician';
     }
 
     public function schedules(): HasMany

@@ -1,9 +1,9 @@
 @extends('layouts.portal-public')
-@section('title', 'WPU Health Services')
+@section('title', $healthHubName ?? config('healthhub.name'))
 @section('content')
 @php $authRoles = app(\App\Services\AuthRoleService::class); @endphp
 <div class="portal-welcome">
-    <h2>WPU Health Services</h2>
+    <h2>{{ $healthHubName ?? config('healthhub.name') }}</h2>
     <p>Book consultations, manage appointments, and connect with university physicians.</p>
     <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:16px">
         @if ($authRoles->isAuthenticated())

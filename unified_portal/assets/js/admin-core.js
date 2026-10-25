@@ -2552,6 +2552,10 @@ function openDentalEditModal(recordId) {
         document.getElementById('dental_edit_diagnostics').value = data.diagnostics || '';
         document.getElementById('dental_edit_assessment').value = data.assessment || '';
         document.getElementById('dental_edit_plan').value = data.plan || '';
+        var dtx = document.getElementById('dental_edit_transaction_type');
+        if (dtx) dtx.value = data.transaction_type || 'Dental';
+        var dcid = document.getElementById('dental_edit_consent_record_id');
+        if (dcid) dcid.value = data.consent_record_id || '';
         toggleDentalEditGuardian();
     })
     .catch(error => {
@@ -2598,8 +2602,63 @@ function viewDentalRecordDetails(recordId) {
     window.location.href = u.pathname + '?' + u.searchParams.toString();
 }
 
+function wpuHandleClinicalRecordSaveResponse(data) {
+    if (!data.success && data.consent_required) {
+        var msg = data.message || 'Medical consent is required.';
+        AlertSystem.show(msg, 'error');
+        if (data.consent_start_url && confirm('Open the Medical Consent Form in a new tab?')) {
+            window.open(data.consent_start_url, '_blank');
+        }
+        return;
+    }
+    AlertSystem.show(data.message || (data.success ? 'Saved.' : 'Error.'), data.success ? 'success' : 'error');
+}
+
+function wpuSuggestConsentIdForStudent(studentId, targetInputId) {
+    if (!studentId || !targetInputId) return;
+    var input = document.getElementById(targetInputId);
+    if (!input || input.value) return;
+    fetch('components/consent_lookup.php?student_id=' + encodeURIComponent(studentId), {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+            if (data.success && data.consents && data.consents.length === 1) {
+                input.value = data.consents[0].id;
+            }
+        })
+        .catch(function () { /* ignore */ });
+}
+
+function wpuBindConsentStudentLookup(studentFieldId, consentFieldId) {
+    var sid = document.getElementById(studentFieldId);
+    if (!sid) return;
+    sid.addEventListener('blur', function () {
+        wpuSuggestConsentIdForStudent(sid.value.trim(), consentFieldId);
+    });
+}
+
+document.addEventListener('change', function (e) {
+    var t = e.target;
+    if (!t || t.name !== 'consent_emergency_bypass') return;
+    var form = t.closest('form');
+    if (!form) return;
+    var consentInput = form.querySelector('.consent-record-id-input');
+    if (!consentInput) return;
+    if (t.checked) {
+        consentInput.removeAttribute('required');
+    } else {
+        consentInput.setAttribute('required', 'required');
+    }
+});
+
 // Dental form submission
 document.addEventListener('DOMContentLoaded', function() {
+    wpuBindConsentStudentLookup('dental_student_id', 'dental_consent_record_id');
+    wpuBindConsentStudentLookup('dental_edit_student_id', 'dental_edit_consent_record_id');
+    wpuBindConsentStudentLookup('health_student_id', 'health_consent_record_id');
+    wpuBindConsentStudentLookup('health_edit_student_id', 'health_edit_consent_record_id');
+
     const dentalAddForm = document.getElementById('dentalAddRecordForm');
     if (dentalAddForm) {
         dentalAddForm.addEventListener('submit', function(e) {
@@ -2615,12 +2674,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    AlertSystem.show(data.message, 'success');
+                    wpuHandleClinicalRecordSaveResponse(data);
                     setTimeout(() => {
                         window.location.href = '?page=health_dental_records&records_tab=dental';
                     }, 1500);
                 } else {
-                    AlertSystem.show(data.message, 'error');
+                    wpuHandleClinicalRecordSaveResponse(data);
                 }
             })
             .catch(error => {
@@ -2645,12 +2704,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    AlertSystem.show(data.message, 'success');
+                    wpuHandleClinicalRecordSaveResponse(data);
                     setTimeout(() => {
                         window.location.href = '?page=health_dental_records&records_tab=dental';
                     }, 1500);
                 } else {
-                    AlertSystem.show(data.message, 'error');
+                    wpuHandleClinicalRecordSaveResponse(data);
                 }
             })
             .catch(error => {
@@ -2731,6 +2790,10 @@ function openHealthEditModal(recordId) {
         document.getElementById('health_edit_diagnostics').value = data.diagnostics || '';
         document.getElementById('health_edit_assessment').value = data.assessment || '';
         document.getElementById('health_edit_plan').value = data.plan || '';
+        var htx = document.getElementById('health_edit_transaction_type');
+        if (htx) htx.value = data.transaction_type || '';
+        var hcid = document.getElementById('health_edit_consent_record_id');
+        if (hcid) hcid.value = data.consent_record_id || '';
         toggleHealthEditGuardian();
     })
     .catch(error => {
@@ -2794,12 +2857,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    AlertSystem.show(data.message, 'success');
+                    wpuHandleClinicalRecordSaveResponse(data);
                     setTimeout(() => {
                         window.location.href = '?page=health_dental_records&records_tab=health';
                     }, 1500);
                 } else {
-                    AlertSystem.show(data.message, 'error');
+                    wpuHandleClinicalRecordSaveResponse(data);
                 }
             })
             .catch(error => {
@@ -2824,12 +2887,12 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    AlertSystem.show(data.message, 'success');
+                    wpuHandleClinicalRecordSaveResponse(data);
                     setTimeout(() => {
                         window.location.href = '?page=health_dental_records&records_tab=health';
                     }, 1500);
                 } else {
-                    AlertSystem.show(data.message, 'error');
+                    wpuHandleClinicalRecordSaveResponse(data);
                 }
             })
             .catch(error => {

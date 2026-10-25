@@ -127,7 +127,7 @@
                                         <div class="stat-header">
                                             <div>
                                                 <div class="stat-value"><?php echo number_format((int) $health_total); ?></div>
-                                                <div class="stat-label">Health Patients</div>
+                                                <div class="stat-label">Medical Patients</div>
                                             </div>
                                             <div class="stat-icon red" aria-hidden="true">
                                                 <i class="fas fa-heartbeat"></i>

@@ -12,13 +12,14 @@ class AppointmentModuleSeeder extends Seeder
 {
     public function run(): void
     {
-        $physician = Physician::query()->firstOrCreate(
+        $physician = Physician::query()->updateOrCreate(
             ['email' => 'physician@wpu.edu.ph'],
             [
                 'name' => 'Juan Dela Cruz',
                 'password' => Hash::make('password123'),
                 'professional_title' => 'Dr.',
                 'specialization' => 'General Medicine',
+                'consultation_location' => 'WPU Health Services Clinic, Main Campus',
                 'consultation_duration' => 30,
                 'max_daily_appointments' => 20,
                 'status' => 'active',

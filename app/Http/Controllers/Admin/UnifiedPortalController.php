@@ -35,10 +35,20 @@ class UnifiedPortalController extends Controller
             define('WPU_LARAVEL_BRIDGE', true);
         }
         if (! defined('WPU_LARAVEL_ADMIN_USER')) {
-            define('WPU_LARAVEL_ADMIN_USER', (string) $request->user('admin')->username);
+            $bridgeUser = $request->user('admin')?->username
+                ?? $request->user('physician')?->email
+                ?? '';
+            define('WPU_LARAVEL_ADMIN_USER', (string) $bridgeUser);
+        }
+        $workspaceRoute = (string) ($request->route()?->getName() ?? 'admin.workspace');
+        if (! defined('WPU_LARAVEL_WORKSPACE_ROUTE')) {
+            define('WPU_LARAVEL_WORKSPACE_ROUTE', $workspaceRoute);
         }
         if (! defined('WPU_LARAVEL_LOGOUT_URL')) {
-            define('WPU_LARAVEL_LOGOUT_URL', url('/admin/workspace/exit'));
+            $logoutUrl = $workspaceRoute === 'physician.workspace'
+                ? route('logout')
+                : url('/admin/workspace/exit');
+            define('WPU_LARAVEL_LOGOUT_URL', $logoutUrl);
         }
         if (! defined('WPU_PORTAL_INDEX_URL')) {
             define('WPU_PORTAL_INDEX_URL', url('/portal/index.php'));

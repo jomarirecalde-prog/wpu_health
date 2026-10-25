@@ -3,44 +3,57 @@
 @section('page-heading', 'Physicians')
 @section('page-description', 'Browse available physicians and book a consultation.')
 @section('content')
-<div class="stats-grid dashboard-stats" style="margin-bottom:18px">
-    <div class="stat-card">
-        <div class="stat-header">
-            <div>
-                <div class="stat-value">{{ $physicians->count() }}</div>
-                <div class="stat-label">Available Physicians</div>
-            </div>
-            <div class="stat-icon blue"><i class="fas fa-user-md"></i></div>
-        </div>
+@guest('portal')
+<div class="portal-page-intro">
+    <h2 class="portal-page-title">Physicians</h2>
+    <p class="portal-page-desc">Browse available physicians and book a consultation.</p>
+</div>
+@endguest
+
+<div class="portal-stat-grid portal-stat-grid--count">
+    <div class="portal-stat">
+        <div class="portal-stat__label">Available physicians</div>
+        <div class="portal-stat__value">{{ $physicians->count() }}</div>
     </div>
 </div>
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+<div class="panels-grid portal-physician-grid">
 @forelse($physicians as $p)
-<div class="content-card">
-    <div class="card-header">
-        <h2 class="card-title"><i class="fas fa-user-md"></i> {{ $p->displayName() }}</h2>
-    </div>
-    <div class="card-body">
-        @if($p->specialization)<p style="color:var(--his-text-muted,#64748B);margin-bottom:8px"><strong>Specialization:</strong> {{ $p->specialization }}</p>@endif
-        @if($p->professional_title)<p style="font-size:13px;margin-bottom:8px">{{ $p->professional_title }}</p>@endif
-        @if($p->consultation_location)<p style="font-size:13px;margin-bottom:12px"><i class="fas fa-map-marker-alt"></i> {{ $p->consultation_location }}</p>@endif
-        <p style="font-size:13px;color:var(--his-text-muted,#64748B);margin-bottom:12px">WPU Health Services</p>
-        @auth('portal')
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a href="{{ route('portal.book') }}?physician_id={{ $p->id }}" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Book Consultation</a>
+    <article class="panel-card portal-physician-card">
+        <div class="panel-header">
+            <div class="panel-icon" aria-hidden="true"><i class="fas fa-user-md"></i></div>
+            <div class="portal-physician-card__head">
+                <div class="panel-title">{{ $p->displayName() }}</div>
+                @if($p->specialization)
+                    <p class="portal-physician-meta">{{ $p->specialization }}</p>
+                @endif
+            </div>
         </div>
-        @else
-        <a href="{{ route('login') }}" class="btn btn-primary btn-sm"><i class="fas fa-sign-in-alt"></i> Login to Book</a>
-        @endauth
-    </div>
-</div>
+        <div class="panel-body">
+            @if($p->consultation_location)
+                <p class="portal-physician-detail"><i class="fas fa-map-marker-alt"></i><span>{{ $p->consultation_location }}</span></p>
+            @endif
+            @if($p->consultation_duration)
+                <p class="portal-physician-detail"><i class="fas fa-clock"></i><span>{{ $p->consultation_duration }} min per visit</span></p>
+            @endif
+            @auth('portal')
+                <a href="{{ route('portal.book') }}?physician_id={{ $p->id }}" class="btn btn-primary btn-sm"><i class="fas fa-calendar-plus"></i> Book Consultation</a>
+            @else
+                <a href="{{ route('login') }}" class="btn btn-primary btn-sm"><i class="fas fa-sign-in-alt"></i> Login to Book</a>
+            @endauth
+        </div>
+    </article>
 @empty
-<div class="content-card"><div class="card-body"><div class="table-empty"><p class="table-empty__title">No physicians available</p></div></div></div>
+    <div class="panel-card portal-physician-card portal-physician-card--empty">
+        <div class="panel-body">
+            <p class="table-empty__title" style="margin:0">No physicians available</p>
+            <p class="portal-page-desc" style="margin:8px 0 0">Please check back later or contact the clinic for assistance.</p>
+        </div>
+    </div>
 @endforelse
 </div>
 
 @guest('portal')
-<p style="margin-top:16px"><a href="{{ route('portal.home') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
+<p class="portal-page-actions"><a href="{{ route('portal.home') }}" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Back to Home</a></p>
 @endguest
 @endsection

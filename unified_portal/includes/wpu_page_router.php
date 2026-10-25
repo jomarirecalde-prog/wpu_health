@@ -23,6 +23,13 @@ if (! function_exists('wpu_admin_page_map')) {
             'view_record' => 'view_record.php',
             'reports' => 'reports.php',
             'backup' => 'backup.php',
+            'consent_refusal_module' => 'consent_refusal_module.php',
+            'secure_consent' => 'secure_consent.php',
+            'view_consent' => 'view_consent.php',
+            'consent_refusal' => 'consent_refusal.php',
+            'view_refusal' => 'view_refusal.php',
+            'referrals_hub' => 'referrals_hub.php',
+            'dispensary' => 'dispensary.php',
         ];
     }
 }

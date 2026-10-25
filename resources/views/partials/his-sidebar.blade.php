@@ -10,11 +10,11 @@
             <img src="{{ $wpuAssets }}/images/logo.png" alt="" width="40" height="40" onerror="this.style.display='none'">
         </div>
         <div class="sidebar-brand">
-            <strong>WPU Medical</strong>
-            <p>Enterprise HIS</p>
+            <strong>{{ $healthHubName ?? config('healthhub.name') }}</strong>
+            <p>{{ $healthHubTagline ?? config('healthhub.tagline') }}</p>
         </div>
     </div>
-    <nav class="sidebar-menu sidebar-nav" aria-label="Admin modules">
+    <nav class="sidebar-menu sidebar-nav" aria-label="Authorized modules">
         <div class="sidebar-section-label">Overview</div>
         <a href="{{ $workspaceUrl }}?page=dashboard" class="nav-link">
             <i class="fas fa-tachometer-alt" aria-hidden="true"></i>
@@ -26,9 +26,21 @@
             <i class="fas fa-file-medical" aria-hidden="true"></i>
             <span class="nav-link-text">Certificates &amp; Referrals</span>
         </a>
-        <a href="{{ $workspaceUrl }}?page=health_dental_records&amp;records_tab=dental" class="nav-link">
+        <a href="{{ $workspaceUrl }}?page=health_dental_records&amp;records_tab=health" class="nav-link">
             <i class="fas fa-notes-medical" aria-hidden="true"></i>
-            <span class="nav-link-text">Health &amp; Dental</span>
+            <span class="nav-link-text">Medical Records</span>
+        </a>
+        <a href="{{ $workspaceUrl }}?page=consent_refusal_module" class="nav-link">
+            <i class="fas fa-file-contract" aria-hidden="true"></i>
+            <span class="nav-link-text">Consent &amp; Refusal</span>
+        </a>
+        <a href="{{ $workspaceUrl }}?page=referrals_hub" class="nav-link">
+            <i class="fas fa-share-square" aria-hidden="true"></i>
+            <span class="nav-link-text">Referrals</span>
+        </a>
+        <a href="{{ $workspaceUrl }}?page=dispensary" class="nav-link">
+            <i class="fas fa-pills" aria-hidden="true"></i>
+            <span class="nav-link-text">Dispensary</span>
         </a>
         <a href="{{ $workspaceUrl }}?page=reports" class="nav-link">
             <i class="fas fa-chart-bar" aria-hidden="true"></i>
@@ -46,7 +58,7 @@
         </a>
         <a href="{{ $calendarBase }}/physicians" class="nav-link {{ $activeSection === 'physicians' ? 'active' : '' }}">
             <i class="fas fa-user-md" aria-hidden="true"></i>
-            <span class="nav-link-text">Physicians</span>
+            <span class="nav-link-text">Doctors Appointment</span>
         </a>
         <a href="{{ $calendarBase }}/reports" class="nav-link {{ $activeSection === 'reports' ? 'active' : '' }}">
             <i class="fas fa-chart-line" aria-hidden="true"></i>
@@ -73,6 +85,10 @@
         <a href="{{ $workspaceUrl }}?page=user_logs" class="nav-link">
             <i class="fas fa-history" aria-hidden="true"></i>
             <span class="nav-link-text">Activity Logs</span>
+        </a>
+        <a href="{{ $workspaceUrl }}?page=backup" class="nav-link">
+            <i class="fas fa-database" aria-hidden="true"></i>
+            <span class="nav-link-text">Backup</span>
         </a>
     </nav>
     <div class="user-info">

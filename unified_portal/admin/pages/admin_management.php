@@ -40,6 +40,21 @@
                                                             <input type="text" class="form-control" id="new_admin_username" name="username" autocomplete="username" required maxlength="190" placeholder="e.g. clinic.admin">
                                                         </div>
                                                         <div class="form-group">
+                                                            <label for="new_admin_email">Authorized email (optional)</label>
+                                                            <input type="email" class="form-control" id="new_admin_email" name="email" autocomplete="email" maxlength="190" placeholder="hso@wpu.edu.ph">
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="new_admin_role">Clinical role</label>
+                                                            <select class="form-control" id="new_admin_role" name="role">
+                                                                <option value="admin">Admin</option>
+                                                                <option value="physician">Physician</option>
+                                                                <option value="dentist">Dentist</option>
+                                                                <option value="nurse">Nurse</option>
+                                                                <option value="staff">Staff</option>
+                                                                <option value="super_admin">Super admin</option>
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group">
                                                             <label for="new_admin_password">Initial password</label>
                                                             <input type="password" class="form-control" id="new_admin_password" name="password" autocomplete="new-password" required placeholder="Strong password">
                                                         </div>

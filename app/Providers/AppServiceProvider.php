@@ -18,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(\App\Services\CacheInvalidationService::class);
         $this->app->singleton(\App\Services\AuthRoleService::class);
         $this->app->singleton(\App\Services\UnifiedAuthService::class);
+        $this->app->singleton(\App\Services\HealthHubRbacService::class);
+        $this->app->singleton(\App\Services\ClinicalWorkspaceAccessService::class);
     }
 
     /**
@@ -48,5 +50,8 @@ class AppServiceProvider extends ServiceProvider
         View::composer(['layouts.portal-app', 'portal.*'], \App\View\Composers\PortalAppLayoutComposer::class);
         View::composer(['layouts.physician-app', 'physician.*'], \App\View\Composers\PhysicianAppLayoutComposer::class);
         View::composer(['layouts.portal-public', 'portal.home', 'portal.auth.*'], \App\View\Composers\PortalLayoutComposer::class);
+
+        View::share('healthHubName', config('healthhub.name'));
+        View::share('healthHubTagline', config('healthhub.tagline'));
     }
 }

@@ -281,12 +281,22 @@ body.sidebar-collapsed .sidebar-collapse-btn {
 
 .sidebar-menu,
 .sidebar-nav {
-  padding: 14px 12px !important;
-  flex: 1;
+  padding: 14px 12px 18px !important;
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   scrollbar-color: rgba(148,163,184,0.35) transparent;
+}
+
+.sidebar-menu .nav-link-text,
+.sidebar-nav .nav-link-text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
 }
 
 .sidebar-menu::-webkit-scrollbar,
